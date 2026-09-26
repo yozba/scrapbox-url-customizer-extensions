@@ -14,6 +14,10 @@ import type {
   BlueskyImageView,
   BlueskyPost,
 } from "./types.ts";
+import {
+  type BlueskyImageUploader,
+  uploadBlueskyImage,
+} from "./upload_image.ts";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -106,6 +110,7 @@ const sourcePostURL = (url: Readonly<URL>): string => {
 
 const asCosenseImageURL = (value: string): string => {
   const url = new URL(value);
+  if (/(?:^|\.)gyazo\.com$/i.test(url.hostname)) return url.href;
   if (
     !/(?:\.(?:avif|gif|jpe?g|png|svg|webp)|@(?:avif|gif|jpe?g|png|webp))$/i
       .test(url.pathname) && !url.hash
@@ -118,10 +123,11 @@ const asCosenseImageURL = (value: string): string => {
 };
 
 /** Converts one Bluesky post to Cosense notation. */
-export const stringifyBlueskyPost = (
+export const stringifyBlueskyPost = async (
   post: BlueskyPost,
   url: Readonly<URL>,
-): string => {
+  uploadImage: BlueskyImageUploader = uploadBlueskyImage,
+): Promise<string> => {
   const lines = [
     `[@${escapeForEmbed(post.author.handle)} ${sourcePostURL(url)}]`,
   ];
@@ -131,8 +137,11 @@ export const stringifyBlueskyPost = (
   const images = extractBlueskyImages(post.embed);
   if (images.length > 0) {
     // Cosense image notation. Keep every image on one line with no spaces.
+    const uploaded = await Promise.all(
+      images.map((image) => uploadImage(image, url)),
+    );
     lines.push(
-      images.map((image) => `[${asCosenseImageURL(image.fullsize)}]`).join(""),
+      uploaded.map((image) => `[${asCosenseImageURL(image.href)}]`).join(""),
     );
   }
 
@@ -146,14 +155,19 @@ export const stringifyBlueskyPost = (
   return lines.map((line) => `> ${line}`).join("\n");
 };
 
+export interface FormatBlueskyPostOptions {
+  fetcher?: Fetcher;
+  uploadImage?: BlueskyImageUploader;
+}
+
 /** Creates a middleware that expands bsky.app post URLs. */
 export const formatBlueskyPost = (
-  fetcher?: Fetcher,
+  options: FormatBlueskyPostOptions = {},
 ): Middleware =>
 (url) => {
   const reference = parseBlueskyPostURL(url);
   if (!reference) return new URL(url);
-  return fetchBlueskyPost(reference, fetcher).then((post) =>
-    stringifyBlueskyPost(post, url)
+  return fetchBlueskyPost(reference, options.fetcher).then((post) =>
+    stringifyBlueskyPost(post, url, options.uploadImage)
   );
 };

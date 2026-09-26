@@ -15,6 +15,14 @@ export type {
   BlueskyPostReference,
 } from "./src/bluesky/types.ts";
 export {
+  createBlueskyImageUploader,
+  uploadBlueskyImage,
+} from "./src/bluesky/upload_image.ts";
+export type {
+  BlueskyImageUploader,
+  BlueskyImageUploaderDependencies,
+} from "./src/bluesky/upload_image.ts";
+export {
   formatRootTweet,
   normalizeTweetOutput,
   takeRootTweet,

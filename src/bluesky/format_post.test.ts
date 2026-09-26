@@ -77,7 +77,7 @@ Deno.test("renderBlueskyText honors UTF-8 byte offsets", () => {
   );
 });
 
-Deno.test("stringifyBlueskyPost ignores quote data and compacts images", () => {
+Deno.test("stringifyBlueskyPost uploads and compacts images", async () => {
   const post: BlueskyPost = {
     uri: "at://did:plc:alice/app.bsky.feed.post/3abc",
     cid: "cid",
@@ -96,14 +96,25 @@ Deno.test("stringifyBlueskyPost ignores quote data and compacts images", () => {
       },
     },
   };
-  const result = stringifyBlueskyPost(
+  const uploaded: string[] = [];
+  const result = await stringifyBlueskyPost(
     post,
     new URL("https://bsky.app/profile/alice.test/post/3abc?x=1"),
+    (image) => {
+      uploaded.push(image.fullsize);
+      return Promise.resolve(
+        new URL(`https://gyazo.com/${uploaded.length}`),
+      );
+    },
   );
   assertStringIncludes(
     result,
-    "> [https://cdn.test/image-one#.jpg][https://cdn.test/image-two#.jpg]",
+    "> [https://gyazo.com/1][https://gyazo.com/2]",
   );
+  assertEquals(uploaded, [
+    "https://cdn.test/image-one",
+    "https://cdn.test/image-two",
+  ]);
   assertEquals(result.includes("quoted text"), false);
   assertEquals(result.endsWith("\n"), false);
 });

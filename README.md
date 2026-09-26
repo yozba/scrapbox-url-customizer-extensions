@@ -12,8 +12,10 @@
   を本文・リンク・メンション・画像つきで展開します。
 - Blueskyでも返信先と引用投稿は展開しません。
 
-Blueskyの取得には認証不要の公開AppView APIを使います。画像は投稿の `fullsize`
-URLをCosenseの画像記法にします（別サービスへの再アップロードはしません）。
+Blueskyの取得には認証不要の公開AppView
+APIを使います。画像は、Cosenseに接続済みの
+GyazoアカウントへアップロードしてからCosenseの画像記法にします。Gyazo未連携または
+アップロード失敗時は、元のBluesky画像URLを使用します。
 
 ## 導入
 

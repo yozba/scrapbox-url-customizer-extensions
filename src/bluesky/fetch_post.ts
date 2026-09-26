@@ -7,7 +7,7 @@ export type Fetcher = (
   init?: RequestInit,
 ) => Promise<Response>;
 
-const defaultFetcher = (): Fetcher => {
+export const getDefaultFetcher = (): Fetcher => {
   const globalWithGMFetch = globalThis as typeof globalThis & {
     GM_fetch?: Fetcher;
   };
@@ -48,7 +48,7 @@ export const parseBlueskyPostURL = (
 /** Resolves a Bluesky handle to a DID. A DID in the URL is returned as-is. */
 export const resolveBlueskyActor = async (
   actor: string,
-  fetcher: Fetcher = defaultFetcher(),
+  fetcher: Fetcher = getDefaultFetcher(),
 ): Promise<string> => {
   if (actor.startsWith("did:")) return actor;
 
@@ -67,7 +67,7 @@ export const resolveBlueskyActor = async (
 /** Fetches one hydrated post without fetching its parent, replies, or quote. */
 export const fetchBlueskyPost = async (
   reference: BlueskyPostReference,
-  fetcher: Fetcher = defaultFetcher(),
+  fetcher: Fetcher = getDefaultFetcher(),
 ): Promise<BlueskyPost> => {
   const did = await resolveBlueskyActor(reference.actor, fetcher);
   const atURI = `at://${did}/app.bsky.feed.post/${reference.rkey}`;
