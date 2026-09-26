@@ -1,0 +1,26 @@
+{
+  "name": "@yozba/scrapbox-url-customizer-extensions",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./userscript": "./src/main.ts"
+  },
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check mod.ts src/main.ts && deno test",
+    "fix": "deno fmt && deno lint --fix && deno test"
+  },
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "deno.ns"
+    ]
+  },
+  "lint": {
+    "rules": {
+      // Explicit jsr: imports keep the raw GitHub entry point bundleable.
+      "exclude": ["no-import-prefix"]
+    }
+  }
+}
