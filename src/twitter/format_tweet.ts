@@ -8,6 +8,7 @@ import type { ProcessedTweet } from "jsr:@takker/scrapbox-url-customizer@^0.4.8"
 import { processTweet } from "./process_tweet.ts";
 
 const imageLine = /^(?:\[https?:\/\/[^\]\r\n]+\])+$/;
+const paddedTag = / (#\$?[^\s]+) /g;
 
 /** Removes the upstream trailing blank line and compacts image rows. */
 export const normalizeTweetOutput = (text: string): string => {
@@ -18,8 +19,11 @@ export const normalizeTweetOutput = (text: string): string => {
   for (const line of lines) {
     const match = line.match(/^(\s*>\s*)?(.*)$/);
     const prefix = match?.[1] ?? "";
-    const body = (match?.[2] ?? line).trim().replace(/\]\s+\[/g, "][");
-    const normalized = imageLine.test(body) ? `${prefix}${body}` : line;
+    const originalBody = match?.[2] ?? line;
+    const body = originalBody.trim().replace(/\]\s+\[/g, "][");
+    const normalized = imageLine.test(body)
+      ? `${prefix}${body}`
+      : `${prefix}${originalBody.replace(paddedTag, "$1")}`;
 
     if (imageLine.test(body) && compacted.length > 0) {
       const previous = compacted.at(-1) ?? "";

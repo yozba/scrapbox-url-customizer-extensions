@@ -11,6 +11,15 @@ Deno.test("normalizeTweetOutput removes the final line and compacts images", () 
   );
 });
 
+Deno.test("normalizeTweetOutput removes formatter padding around hashtags", () => {
+  assertEquals(
+    normalizeTweetOutput(
+      "[@alice https://twitter.com/alice/status/1]\n #first  hello\nnext  #second \n #one   #two \n",
+    ),
+    "[@alice https://twitter.com/alice/status/1]\n#first hello\nnext #second\n#one #two",
+  );
+});
+
 Deno.test("takeRootTweet removes reply and quote expansion", () => {
   const base = {
     id_str: "1",
