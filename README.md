@@ -25,88 +25,56 @@ Cookie付きの汎用通信機能は公開しません。
 
 #### 2-1. Safe Fetch（推奨）
 
-- 用途
-  - 任意URLのタイトル、公開画像、公開動画をCORS制限を越えて取得します。
-  - 本家が参照する `GM_fetch` と互換の関数を提供します。
-- 制限
-  - GETとHEADだけを許可し、Cookieなどのブラウザ認証情報は送信しません。
-  - ローカル・プライベートネットワーク、任意ヘッダー、256 MiB超のレスポンスを
-    拒否します。
-- 注意
-  - 既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)を導入している場合は、先に
-    無効化または削除してください。
-- インストールURL
+任意URLのタイトル、公開画像、公開動画をCORS制限を越えて取得する、`GM_fetch`
+互換の関数です。GETとHEADだけを許可し、Cookieなどのブラウザ認証情報は送信しません。
+ローカル・プライベートネットワーク、任意ヘッダー、256 MiB超のレスポンスも拒否します。
 
-  ```text
-  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/safe-fetch.user.js
-  ```
+既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)は、先に無効化または削除してください。
+
+**インストール:** [safe-fetch.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/safe-fetch.user.js)
 
 #### 2-2. Gyazo Session Upload Bridge（任意）
 
-- 用途
-  - Gyazo OAuth APIが動画を受け付けなかった場合に、ブラウザのGyazoログイン状態で
-    再試行します。
-  - アップロード先は `https://gif.gyazo.com/gif/upload` に固定されています。
-- 導入しない場合
-  - OAuth APIの失敗後、Cosenseプロジェクトストレージへ直接フォールバックします。
-- 事前条件
-  - 同じブラウザでGyazoへログインしておきます。
-- インストールURL
+Gyazo OAuth APIが動画を受け付けなかった場合に、ブラウザのGyazoログイン状態で
+再試行します。アップロード先は `https://gif.gyazo.com/gif/upload` に固定されています。
+利用するには、同じブラウザでGyazoへログインしておきます。
 
-  ```text
-  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/gyazo-session-upload-bridge.user.js
-  ```
+導入しない場合は、OAuth APIの失敗後にCosenseプロジェクトストレージへ
+直接フォールバックします。
+
+**インストール:** [gyazo-session-upload-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/gyazo-session-upload-bridge.user.js)
 
 #### 2-3. X Auth Bridge（任意）
 
-- 用途
-  - 公開取得に失敗したX投稿を、ブラウザのXログイン状態で再取得します。
-  - 成人向け指定に限らず、ログインしないと取得できない投稿が対象です。
-- 認証情報
-  - Tampermonkey内でCookieの `ct0` を読み取り、Xの固定APIにだけ送信します。
-  - `ct0`やCookie文字列をCosenseページへ公開・保存しません。
-- 事前条件
-  - 同じブラウザで `https://x.com/` へログインしておきます。
-  - TampermonkeyからCookie読み取り権限を求められた場合は許可します。
-- インストールURL
+公開取得に失敗したX投稿を、ブラウザのXログイン状態で再取得します。成人向け指定に
+限らず、ログインしないと取得できない投稿が対象です。
 
-  ```text
-  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
-  ```
+Tampermonkey内でCookieの `ct0` を読み取り、Xの固定APIにだけ送信します。`ct0`や
+Cookie文字列をCosenseページへ公開・保存しません。利用するには同じブラウザで
+`https://x.com/` へログインし、Cookie読み取り権限を許可します。
+
+**インストール:** [x-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js)
 
 #### 2-4. Bluesky Auth Bridge（任意）
 
-- 用途
-  - 公開AppViewで取得できないBluesky投稿を、ログイン中の `bsky.app` タブ経由で
-    再取得します。
-- 認証情報
-  - アクセストークンや更新トークンをCosense側へ公開・複製しません。
-  - `bsky.app` タブ内で認証GETを行い、必要な投稿データだけを返します。
-- 事前条件
-  - 同じブラウザでBlueskyへログインし、`https://bsky.app/` のタブを開いたまま
-    変換します。
-- インストールURL
+公開AppViewで取得できないBluesky投稿を、ログイン中の `bsky.app` タブ経由で
+再取得します。アクセストークンや更新トークンをCosense側へ公開・複製せず、
+必要な投稿データだけを返します。
 
-  ```text
-  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/bluesky-auth-bridge.user.js
-  ```
+利用するには同じブラウザでBlueskyへログインし、`https://bsky.app/` のタブを
+開いたまま変換します。
+
+**インストール:** [bluesky-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/bluesky-auth-bridge.user.js)
 
 #### 2-5. Instagram Auth Bridge（任意）
 
-- 用途
-  - Instagramの内部APIからカルーセルの全画像と動画MP4を取得します。
-- 認証情報
-  - Instagramへの固定GETだけにブラウザのCookieを使用します。
-  - Cookie文字列を読み取る、保存する、外部サービスへ送信する処理はありません。
-- 導入しない場合
-  - 認証不要のoEmbedを使い、本文・投稿者・代表画像だけを展開します。
-- 事前条件
-  - 同じブラウザでInstagramへログインしておきます。
-- インストールURL
+Instagramの内部APIからカルーセルの全画像と動画MP4を取得します。Instagramへの
+固定GETだけにブラウザのCookieを使用し、Cookie文字列の読み取り・保存・外部送信は
+行いません。利用するには同じブラウザでInstagramへログインしておきます。
 
-  ```text
-  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/instagram-auth-bridge.user.js
-  ```
+導入しない場合は、認証不要のoEmbedを使って本文・投稿者・代表画像だけを展開します。
+
+**インストール:** [instagram-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/instagram-auth-bridge.user.js)
 
 ## 追加・変更する動作
 
