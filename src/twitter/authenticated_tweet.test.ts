@@ -148,6 +148,38 @@ Deno.test("X middleware uses authentication only after public failure", async ()
   assertEquals(authenticatedCalls, 1);
 });
 
+Deno.test("X middleware uses anonymous syndication before authentication", async () => {
+  let authenticatedCalls = 0;
+  const middleware = formatAuthenticatedTweet({
+    fetcher: (input, init) => {
+      assertEquals(
+        input.toString(),
+        "https://cdn.syndication.twimg.com/tweet-result?id=123&token=x",
+      );
+      assertEquals(init?.credentials, "omit");
+      return Promise.resolve(Response.json({
+        __typename: "Tweet",
+        id_str: "123",
+        text: "public post",
+        user: { name: "Alice", screen_name: "alice" },
+        created_at: "Sat Sep 27 00:00:00 +0000 2026",
+        conversation_count: 0,
+        entities: {},
+      }));
+    },
+    getTweet: () => {
+      authenticatedCalls++;
+      return Promise.resolve(graphqlTweet);
+    },
+  });
+
+  assertEquals(
+    await middleware(new URL("https://x.com/alice/status/123")),
+    "> [@alice https://twitter.com/alice/status/123]\n> public post",
+  );
+  assertEquals(authenticatedCalls, 0);
+});
+
 Deno.test("X middleware reports both failures when the bridge is absent", async () => {
   const middleware = formatAuthenticatedTweet({
     publicMiddleware: () => Promise.reject(new Error("not public")),

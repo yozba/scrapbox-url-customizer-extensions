@@ -27,31 +27,27 @@ Deno.test("fetchInstagramPost uses authenticated media when available", async ()
     fetcher: (input, init) => {
       const url = new URL(input.toString());
       requests.push(url);
-      if (url.pathname === "/api/v1/oembed/") {
-        return Promise.resolve(Response.json({
-          media_id: "123_456",
-          title: "public caption",
-          author_name: "public-user",
-          thumbnail_url: "https://cdn.test/cover.jpg",
-        }));
-      }
-      assertEquals(url.pathname, "/api/v1/media/123_456/info/");
-      assertEquals(init?.credentials, "include");
-      assertEquals(
-        new Headers(init?.headers).get("X-IG-App-ID"),
-        "936619743392459",
-      );
+      assertEquals(url.pathname, "/api/v1/oembed/");
+      assertEquals(init?.credentials, "omit");
       return Promise.resolve(Response.json({
-        items: [{
-          caption: { text: "authenticated caption" },
-          user: { username: "authenticated-user" },
-        }],
+        media_id: "123_456",
+        title: "public caption",
+        author_name: "public-user",
+        thumbnail_url: "https://cdn.test/cover.jpg",
       }));
+    },
+    getAuthenticatedMedia: (mediaId, postURL) => {
+      assertEquals(mediaId, "123_456");
+      assertEquals(postURL, "https://www.instagram.com/p/ABC123/");
+      return Promise.resolve({
+        caption: { text: "authenticated caption" },
+        user: { username: "authenticated-user" },
+      });
     },
   });
 
   assertEquals(post.authenticated?.caption?.text, "authenticated caption");
-  assertEquals(requests.length, 2);
+  assertEquals(requests.length, 1);
 });
 
 Deno.test("fetchInstagramPost falls back to oEmbed when login is unavailable", async () => {
@@ -68,9 +64,10 @@ Deno.test("fetchInstagramPost falls back to oEmbed when login is unavailable", a
             title: "caption",
             thumbnail_url: "https://cdn.test/cover.jpg",
           })
-          : new Response("login_required", { status: 403 }),
+          : new Response("unexpected", { status: 500 }),
       );
     },
+    getAuthenticatedMedia: () => Promise.resolve(undefined),
   });
 
   assertEquals(post.authenticated, undefined);

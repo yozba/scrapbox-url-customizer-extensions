@@ -6,7 +6,15 @@ import type {
   InstagramPostReference,
 } from "./types.ts";
 
-const INSTAGRAM_APP_ID = "936619743392459";
+export type AuthenticatedInstagramMediaGetter = (
+  mediaId: string,
+  postURL: string,
+) => Promise<unknown>;
+
+const getDefaultAuthenticatedMediaGetter = () =>
+  (globalThis as typeof globalThis & {
+    GM_Instagram_getMedia?: AuthenticatedInstagramMediaGetter;
+  }).GM_Instagram_getMedia;
 
 export const parseInstagramPostURL = (
   url: Readonly<URL>,
@@ -57,38 +65,16 @@ export const fetchInstagramOEmbed = async (
 export const fetchAuthenticatedInstagramMedia = async (
   mediaId: string,
   postURL: Readonly<URL>,
-  fetcher: Fetcher = getDefaultFetcher(),
+  getter: AuthenticatedInstagramMediaGetter | undefined =
+    getDefaultAuthenticatedMediaGetter(),
 ): Promise<InstagramMediaItem | undefined> => {
-  const url = new URL(
-    `/api/v1/media/${encodeURIComponent(mediaId)}/info/`,
-    "https://www.instagram.com",
-  );
-  const response = await fetcher(url, {
-    credentials: "include",
-    headers: {
-      "X-IG-App-ID": INSTAGRAM_APP_ID,
-      "X-ASBD-ID": "129477",
-      "X-Requested-With": "XMLHttpRequest",
-      Referer: postURL.href,
-    },
-    referrer: postURL.href,
-  });
-  if ([401, 403, 404].includes(response.status)) {
+  if (!getter) {
     console.info(
-      `Instagram authenticated media is unavailable (${response.status}); using oEmbed.`,
+      "Instagram Auth Bridge is not installed; using oEmbed.",
     );
     return undefined;
   }
-  if (!response.ok) {
-    throw new Error(
-      `Instagram media request failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  const result = await response.json() as { items?: unknown };
-  if (!Array.isArray(result.items) || result.items.length === 0) {
-    return undefined;
-  }
-  const item = result.items[0];
+  const item = await getter(mediaId, postURL.href);
   return item !== null && typeof item === "object"
     ? item as InstagramMediaItem
     : undefined;
@@ -97,6 +83,7 @@ export const fetchAuthenticatedInstagramMedia = async (
 export interface FetchInstagramPostOptions {
   fetcher?: Fetcher;
   authenticated?: boolean;
+  getAuthenticatedMedia?: AuthenticatedInstagramMediaGetter;
 }
 
 export const fetchInstagramPost = async (
@@ -110,7 +97,7 @@ export const fetchInstagramPost = async (
     : await fetchAuthenticatedInstagramMedia(
       oembed.media_id,
       reference.canonicalURL,
-      fetcher,
+      options.getAuthenticatedMedia ?? getDefaultAuthenticatedMediaGetter(),
     );
   return { reference, oembed, authenticated };
 };

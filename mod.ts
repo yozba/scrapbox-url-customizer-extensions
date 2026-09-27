@@ -44,6 +44,7 @@ export {
   parseInstagramPostURL,
 } from "./src/instagram/fetch_post.ts";
 export type { FetchInstagramPostOptions } from "./src/instagram/fetch_post.ts";
+export type { AuthenticatedInstagramMediaGetter } from "./src/instagram/fetch_post.ts";
 export {
   extractInstagramMedia,
   formatInstagramPost,
@@ -75,6 +76,7 @@ export {
   uploadVideoFile,
 } from "./src/media/upload_video.ts";
 export type {
+  GyazoSessionVideoUploader,
   VideoFileUploader,
   VideoFileUploaderDependencies,
 } from "./src/media/upload_video.ts";
@@ -96,3 +98,11 @@ export {
   takeRootTweet,
 } from "./src/twitter/format_tweet.ts";
 export { processTweet } from "./src/twitter/process_tweet.ts";
+export {
+  createXMediaUploader,
+  uploadXMedia,
+} from "./src/twitter/upload_media.ts";
+export type {
+  XMediaUploader,
+  XMediaUploaderDependencies,
+} from "./src/twitter/upload_media.ts";

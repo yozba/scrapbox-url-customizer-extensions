@@ -44,7 +44,7 @@ export const createInstagramVideoUploader = (
     if (cached) return cached;
     const promise = (async (): Promise<URL> => {
       try {
-        const response = await fetcher(sourceURL, { credentials: "include" });
+        const response = await fetcher(sourceURL, { credentials: "omit" });
         if (!response.ok) {
           throw new Error(
             `Instagram video download failed: ${response.status} ${response.statusText}`,

@@ -19,7 +19,7 @@ export const getDefaultFetcher = (): Fetcher => {
 };
 
 const getJSON = async <T>(url: URL, fetcher: Fetcher): Promise<T> => {
-  const response = await fetcher(url);
+  const response = await fetcher(url, { credentials: "omit" });
   if (!response.ok) {
     throw new Error(
       `Bluesky API request failed: ${response.status} ${response.statusText}`,

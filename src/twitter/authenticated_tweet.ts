@@ -1,11 +1,16 @@
-import {
-  formatTweet,
-  type Middleware,
-  type ProcessedTweet,
-  stringify,
-  type Tweet,
+import type {
+  Middleware,
+  ProcessedTweet,
+  Tweet,
+  TweetViaProxy,
 } from "../deps/scrapbox_url_customizer.ts";
-import { formatRootTweet, normalizeTweetOutput } from "./format_tweet.ts";
+import { getTweetInfo } from "../deps/cosense_std.ts";
+import { type Fetcher, getDefaultFetcher } from "../bluesky/fetch_post.ts";
+import {
+  formatRootTweet,
+  normalizeTweetOutput,
+  stringifyRootTweet,
+} from "./format_tweet.ts";
 import { processTweet } from "./process_tweet.ts";
 
 export interface XPostReference {
@@ -155,27 +160,63 @@ export const fetchAuthenticatedTweet = async (
 export const stringifyAuthenticatedTweet = async (
   tweet: ProcessedTweet,
 ): Promise<string> => {
-  const rendered = normalizeTweetOutput(await stringify(tweet));
+  const rendered = normalizeTweetOutput(await stringifyRootTweet(tweet));
   return rendered.split("\n").map((line) => `> ${line}`).join("\n");
+};
+
+const formatPublicTweet = async (
+  reference: XPostReference,
+  fetcher: Fetcher,
+): Promise<string> => {
+  let syndicationError: unknown;
+  try {
+    const url = new URL("https://cdn.syndication.twimg.com/tweet-result");
+    url.searchParams.set("id", reference.id);
+    url.searchParams.set("token", "x");
+    const response = await fetcher(url, { credentials: "omit" });
+    if (!response.ok) {
+      throw new Error(
+        `X syndication request failed: ${response.status} ${response.statusText}`,
+      );
+    }
+    return await formatRootTweet(
+      await response.json() as Tweet,
+      reference.canonicalURL,
+    );
+  } catch (error) {
+    syndicationError = error;
+  }
+
+  const proxy = await getTweetInfo(reference.canonicalURL.href);
+  if (!proxy.ok) {
+    throw new AggregateError(
+      [syndicationError, proxy.err],
+      "Public X post expansion failed",
+    );
+  }
+  return await formatRootTweet({
+    ...proxy.val as TweetViaProxy,
+    id: reference.id,
+  }, reference.canonicalURL);
 };
 
 export interface FormatAuthenticatedTweetOptions {
   getTweet?: AuthenticatedTweetGetter;
   publicMiddleware?: Middleware;
+  fetcher?: Fetcher;
 }
 
 /** Tries the no-login formatter first, then the browser's X session. */
 export const formatAuthenticatedTweet = (
   options: FormatAuthenticatedTweetOptions = {},
 ): Middleware => {
-  const publicMiddleware = options.publicMiddleware ??
-    formatTweet(formatRootTweet);
-
   return (url) => {
     const reference = parseXPostURL(url);
     if (!reference) return new URL(url);
 
-    const publicResult = publicMiddleware(url);
+    const publicResult = options.publicMiddleware
+      ? options.publicMiddleware(url)
+      : formatPublicTweet(reference, options.fetcher ?? getDefaultFetcher());
     if (publicResult instanceof URL) return publicResult;
 
     return Promise.resolve(publicResult).catch(async (publicError) => {

@@ -1,5 +1,5 @@
 import { getProject, uploadToGCS } from "../deps/cosense_std.ts";
-import { type Fetcher, getDefaultFetcher } from "../bluesky/fetch_post.ts";
+import type { Fetcher } from "../bluesky/fetch_post.ts";
 import { getConnectedGyazoToken } from "../bluesky/upload_image.ts";
 
 declare const scrapbox: { Project: { name: string } };
@@ -9,12 +9,33 @@ export type VideoFileUploader = (
   sourceURL: Readonly<URL>,
 ) => Promise<URL>;
 
+export type GyazoSessionVideoUploader = (
+  file: File,
+  title?: string,
+) => Promise<string | URL>;
+
 export interface VideoFileUploaderDependencies {
   upload?: Fetcher;
-  sessionUpload?: Fetcher;
+  sessionUpload?: GyazoSessionVideoUploader;
   getToken?: () => Promise<string | undefined>;
   fallbackUpload?: (file: File) => Promise<URL>;
 }
+
+const getDefaultSessionUploader = (): GyazoSessionVideoUploader | undefined =>
+  (globalThis as typeof globalThis & {
+    GM_Gyazo_uploadVideo?: GyazoSessionVideoUploader;
+  }).GM_Gyazo_uploadVideo;
+
+const checkedUploadURL = (value: string | URL): URL => {
+  const url = new URL(value);
+  if (
+    url.protocol !== "https:" ||
+    !/(?:^|\.)gyazo\.com$/i.test(url.hostname)
+  ) {
+    throw new TypeError("Gyazo returned an invalid upload URL");
+  }
+  return url;
+};
 
 let projectIdPromise: Promise<string> | undefined;
 
@@ -58,7 +79,8 @@ export const createVideoFileUploader = (
   dependencies: VideoFileUploaderDependencies = {},
 ): VideoFileUploader => {
   const upload = dependencies.upload ?? globalThis.fetch.bind(globalThis);
-  const sessionUpload = dependencies.sessionUpload ?? getDefaultFetcher();
+  const sessionUpload = dependencies.sessionUpload ??
+    getDefaultSessionUploader();
   const getToken = dependencies.getToken ?? getConnectedGyazoToken;
   const fallbackUpload = dependencies.fallbackUpload ?? uploadToCosenseStorage;
   let tokenPromise: Promise<string | undefined> | undefined;
@@ -105,7 +127,7 @@ export const createVideoFileUploader = (
         if (typeof permalink !== "string") {
           throw new TypeError("Gyazo returned an invalid upload response");
         }
-        return new URL(permalink);
+        return checkedUploadURL(permalink);
       } catch (error) {
         gyazoError = error;
         console.warn(
@@ -115,35 +137,14 @@ export const createVideoFileUploader = (
       }
     }
 
-    try {
-      const form = new FormData();
-      form.append("data", file);
-      form.append(
-        "metadata",
-        JSON.stringify({ app: "Gyazo", title: file.name }),
-      );
-      const response = await sessionUpload(
-        "https://gif.gyazo.com/gif/upload",
-        {
-          method: "POST",
-          body: form,
-          credentials: "include",
-          headers: {
-            Origin: "https://gyazo.com",
-            "sec-fetch-site": "same-site",
-          },
-          referrer: "https://gyazo.com/",
-        },
-      );
-      if (!response.ok) {
-        throw await responseError(
-          "Gyazo session video upload failed",
-          response,
-        );
+    if (sessionUpload) {
+      try {
+        return checkedUploadURL(await sessionUpload(file, file.name));
+      } catch (error) {
+        gyazoError = error;
       }
-      return new URL((await response.text()).trim());
-    } catch (error) {
-      gyazoError = error;
+    } else if (!gyazoError) {
+      gyazoError = new Error("Gyazo Session Upload Bridge is not installed");
     }
 
     console.warn(

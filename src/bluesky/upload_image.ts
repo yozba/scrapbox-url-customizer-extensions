@@ -59,7 +59,9 @@ export const createBlueskyImageUploader = (
           return new URL(image.fullsize);
         }
 
-        const imageResponse = await download(new URL(image.fullsize));
+        const imageResponse = await download(new URL(image.fullsize), {
+          credentials: "omit",
+        });
         if (!imageResponse.ok) {
           throw new Error(
             `Bluesky image download failed: ${imageResponse.status} ${imageResponse.statusText}`,

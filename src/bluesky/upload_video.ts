@@ -49,7 +49,9 @@ export const resolveBlueskyPDS = async (
   did: string,
   fetcher: Fetcher = getDefaultFetcher(),
 ): Promise<URL> => {
-  const response = await fetcher(didDocumentURL(did));
+  const response = await fetcher(didDocumentURL(did), {
+    credentials: "omit",
+  });
   if (!response.ok) {
     throw new Error(
       `DID document request failed: ${response.status} ${response.statusText}`,
@@ -91,7 +93,7 @@ export const createBlueskyVideoUploader = (
         blobURL.searchParams.set("did", post.author.did);
         blobURL.searchParams.set("cid", video.cid);
         sourceMP4 = blobURL;
-        const response = await fetcher(blobURL);
+        const response = await fetcher(blobURL, { credentials: "omit" });
         if (!response.ok) {
           throw new Error(
             `Bluesky video download failed: ${response.status} ${response.statusText}`,
