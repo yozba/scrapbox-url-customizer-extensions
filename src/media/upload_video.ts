@@ -124,7 +124,7 @@ export const createVideoFileUploader = (
       } catch (error) {
         gyazoError = error;
         console.warn(
-          "Gyazo form upload failed; trying the OAuth fetch fallback.",
+          "Gyazo bridge upload failed; trying the OAuth fetch fallback.",
           error,
         );
       }

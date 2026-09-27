@@ -4,7 +4,7 @@ import {
   MAX_SESSION_BRIDGE_BYTES,
 } from "./upload_video.ts";
 
-Deno.test("video uploads use the iframe OAuth bridge before fetch", async () => {
+Deno.test("video uploads use the OAuth bridge before fetch", async () => {
   const calls: string[] = [];
   const uploader = createVideoFileUploader({
     getToken: () => Promise.resolve("gyazo-token"),
