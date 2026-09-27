@@ -14,12 +14,29 @@ export type GyazoSessionVideoUploader = (
   title?: string,
 ) => Promise<string | URL>;
 
+export type GyazoOAuthVideoUploader = (
+  file: File,
+  accessToken: string,
+  sourceURL: string,
+  title?: string,
+) => Promise<string | URL>;
+
 export interface VideoFileUploaderDependencies {
   upload?: Fetcher;
+  oauthUpload?: GyazoOAuthVideoUploader;
   sessionUpload?: GyazoSessionVideoUploader;
   getToken?: () => Promise<string | undefined>;
   fallbackUpload?: (file: File) => Promise<URL>;
 }
+
+// Chrome extension messages are limited to 64 MiB. Leave headroom for the
+// multipart envelope and Tampermonkey's serialization overhead.
+export const MAX_SESSION_BRIDGE_BYTES = 60 * 1024 * 1024;
+
+const getDefaultOAuthUploader = (): GyazoOAuthVideoUploader | undefined =>
+  (globalThis as typeof globalThis & {
+    GM_Gyazo_uploadVideoOAuth?: GyazoOAuthVideoUploader;
+  }).GM_Gyazo_uploadVideoOAuth;
 
 const getDefaultSessionUploader = (): GyazoSessionVideoUploader | undefined =>
   (globalThis as typeof globalThis & {
@@ -79,6 +96,7 @@ export const createVideoFileUploader = (
   dependencies: VideoFileUploaderDependencies = {},
 ): VideoFileUploader => {
   const upload = dependencies.upload ?? globalThis.fetch.bind(globalThis);
+  const oauthUpload = dependencies.oauthUpload ?? getDefaultOAuthUploader();
   const sessionUpload = dependencies.sessionUpload ??
     getDefaultSessionUploader();
   const getToken = dependencies.getToken ?? getConnectedGyazoToken;
@@ -96,6 +114,20 @@ export const createVideoFileUploader = (
         "Could not get the Gyazo OAuth token; trying the browser session.",
         error,
       );
+    }
+
+    if (token && oauthUpload) {
+      try {
+        return checkedUploadURL(
+          await oauthUpload(file, token, sourceURL.href, file.name),
+        );
+      } catch (error) {
+        gyazoError = error;
+        console.warn(
+          "Gyazo form upload failed; trying the OAuth fetch fallback.",
+          error,
+        );
+      }
     }
 
     if (token) {
@@ -137,14 +169,18 @@ export const createVideoFileUploader = (
       }
     }
 
-    if (sessionUpload) {
+    if (sessionUpload && file.size <= MAX_SESSION_BRIDGE_BYTES) {
       try {
         return checkedUploadURL(await sessionUpload(file, file.name));
       } catch (error) {
         gyazoError = error;
       }
+    } else if (sessionUpload) {
+      gyazoError = new RangeError(
+        "The video exceeds the 60 MiB browser-extension bridge limit",
+      );
     } else if (!gyazoError) {
-      gyazoError = new Error("Gyazo Session Upload Bridge is not installed");
+      gyazoError = new Error("Gyazo Upload Bridge is not installed");
     }
 
     console.warn(

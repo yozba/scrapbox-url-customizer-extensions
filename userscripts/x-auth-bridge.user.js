@@ -11,8 +11,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @run-at       document-start
-// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
-// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
+// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/x-auth-bridge.user.js
+// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/x-auth-bridge.user.js
 // @license      MIT
 // ==/UserScript==
 

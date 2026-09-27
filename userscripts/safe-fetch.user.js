@@ -10,8 +10,8 @@
 // @grant        unsafeWindow
 // @noframes
 // @run-at       document-start
-// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/safe-fetch.user.js
-// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/safe-fetch.user.js
+// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/safe-fetch.user.js
+// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/safe-fetch.user.js
 // @license      MIT
 // ==/UserScript==
 

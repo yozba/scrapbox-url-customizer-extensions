@@ -73,9 +73,11 @@ export type {
 } from "./src/instagram/upload_media.ts";
 export {
   createVideoFileUploader,
+  MAX_SESSION_BRIDGE_BYTES,
   uploadVideoFile,
 } from "./src/media/upload_video.ts";
 export type {
+  GyazoOAuthVideoUploader,
   GyazoSessionVideoUploader,
   VideoFileUploader,
   VideoFileUploaderDependencies,
