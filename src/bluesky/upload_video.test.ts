@@ -52,10 +52,13 @@ Deno.test("Bluesky videos are downloaded and uploaded to Gyazo once", async () =
       uploadCount++;
       assertEquals(input.toString(), "https://upload.gyazo.com/api/upload");
       assertEquals(init?.credentials, "omit");
+      assertEquals(
+        new Headers(init?.headers).get("Authorization"),
+        "Bearer gyazo-token",
+      );
       const form = init?.body;
       assertInstanceOf(form, FormData);
       assertInstanceOf(form.get("imagedata"), File);
-      assertEquals(form.get("access_token"), "gyazo-token");
       assertEquals(form.get("title"), "video description");
       return Promise.resolve(
         Response.json({ permalink_url: "https://gyazo.com/video-id" }),
@@ -107,6 +110,7 @@ Deno.test("a failed Gyazo upload falls back to the source MP4 URL", async () => 
     },
     sessionUpload: () =>
       Promise.resolve(new Response("not allowed", { status: 403 })),
+    fallbackUpload: () => Promise.reject(new Error("storage unavailable")),
   });
   const post: BlueskyPost = {
     uri: "at://did:plc:alice/app.bsky.feed.post/3abc",
@@ -127,4 +131,50 @@ Deno.test("a failed Gyazo upload falls back to the source MP4 URL", async () => 
   assertEquals(result.hostname, "alice.pds.test");
   assertEquals(result.pathname, "/xrpc/com.atproto.sync.getBlob");
   assertEquals(result.searchParams.get("cid"), "video-cid");
+});
+
+Deno.test("a Gyazo 500 falls back to Cosense storage", async () => {
+  let storedFile: File | undefined;
+  const uploader = createBlueskyVideoUploader({
+    getToken: () => Promise.resolve(undefined),
+    fetcher: (input) => {
+      const url = new URL(input.toString());
+      return Promise.resolve(
+        url.hostname === "plc.directory"
+          ? Response.json({
+            service: [{
+              id: "did:plc:alice#atproto_pds",
+              serviceEndpoint: "https://alice.pds.test",
+            }],
+          })
+          : new Response(new Blob(["video"], { type: "video/mp4" })),
+      );
+    },
+    sessionUpload: () =>
+      Promise.resolve(new Response("conversion failed", { status: 500 })),
+    fallbackUpload: (file) => {
+      storedFile = file;
+      return Promise.resolve(
+        new URL("https://scrapbox.io/files/video-id.mp4"),
+      );
+    },
+  });
+  const post: BlueskyPost = {
+    uri: "at://did:plc:alice/app.bsky.feed.post/3abc",
+    cid: "post-cid",
+    author: { did: "did:plc:alice", handle: "alice.test" },
+    record: { text: "video", createdAt: "2026-01-01T00:00:00Z" },
+    indexedAt: "2026-01-01T00:00:00Z",
+  };
+  const result = await uploader(
+    {
+      cid: "video-cid",
+      playlist: "https://video.bsky.app/playlist.m3u8",
+    },
+    post,
+    new URL("https://bsky.app/profile/alice.test/post/3abc"),
+  );
+
+  assertInstanceOf(storedFile, File);
+  assertEquals(result, new URL("https://scrapbox.io/files/video-id.mp4"));
 });
