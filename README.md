@@ -3,9 +3,6 @@
 [`@takker/scrapbox-url-customizer`](https://jsr.io/@takker/scrapbox-url-customizer)
 に個人用の変換を追加するCosense UserScriptです。
 
-この `authenticated-media` ブランチは、投稿元サービスへのログイン状態を使う
-機能を含む個人向け版です。認証不要版は `main` ブランチにあります。
-
 ## 導入
 
 ### 1. Cosense UserScript（本体）
