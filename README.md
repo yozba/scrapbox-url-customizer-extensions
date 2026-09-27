@@ -45,18 +45,7 @@ MP4 URLを使用します。64 MiB以下でも各アップロード先が利用�
 **インストール:**
 [gyazo-session-upload-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/gyazo-session-upload-bridge.user.js)
 
-#### 2-3. Misskey Public API Bridge（Misskey利用時）
-
-選択したMisskeyノートURLを検証し、同じインスタンスの `/api/notes/show` から
-公開ノートを取得します。通信は匿名で、Cookieやアクセストークンを使用しません。
-公開する関数はノートURLを1件取得する機能だけで、任意のPOST通信には利用できません。
-ローカル・プライベートネットワークへの接続、リダイレクト、8
-MiBを超えるレスポンスも 拒否します。
-
-**インストール:**
-[misskey-public-api-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/misskey-public-api-bridge.user.js)
-
-#### 2-4. X Auth Bridge（任意）
+#### 2-3. X Auth Bridge（任意）
 
 公開取得に失敗したX投稿を、ブラウザのXログイン状態で再取得します。成人向け指定に
 限らず、ログインしないと取得できない投稿が対象です。
@@ -68,7 +57,7 @@ Cookie文字列をCosenseページへ公開・保存しません。利用する�
 **インストール:**
 [x-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/x-auth-bridge.user.js)
 
-#### 2-5. Bluesky Auth Bridge（任意）
+#### 2-4. Bluesky Auth Bridge（任意）
 
 公開AppViewで取得できないBluesky投稿を、ログイン中の `bsky.app` タブ経由で
 再取得します。アクセストークンや更新トークンをCosense側へ公開・複製せず、
@@ -80,7 +69,7 @@ Cookie文字列をCosenseページへ公開・保存しません。利用する�
 **インストール:**
 [bluesky-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/bluesky-auth-bridge.user.js)
 
-#### 2-6. Instagram Auth Bridge（任意）
+#### 2-5. Instagram Auth Bridge（任意）
 
 Instagramの内部APIからカルーセルの全画像と動画MP4を取得します。Instagramへの
 固定GETだけにブラウザのCookieを使用し、Cookie文字列の読み取り・保存・外部送信は
@@ -90,6 +79,17 @@ Instagramの内部APIからカルーセルの全画像と動画MP4を取得し�
 
 **インストール:**
 [instagram-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/instagram-auth-bridge.user.js)
+
+#### 2-6. Misskey Public API Bridge（Misskey利用時）
+
+選択したMisskeyノートURLを検証し、同じインスタンスの `/api/notes/show` から
+公開ノートを取得します。通信は匿名で、Cookieやアクセストークンを使用しません。
+公開する関数はノートURLを1件取得する機能だけで、任意のPOST通信には利用できません。
+ローカル・プライベートネットワークへの接続、リダイレクト、8
+MiBを超えるレスポンスも 拒否します。
+
+**インストール:**
+[misskey-public-api-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/misskey-public-api-bridge.user.js)
 
 ## 追加・変更する動作
 
