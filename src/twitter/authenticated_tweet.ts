@@ -20,6 +20,14 @@ export interface XPostReference {
 
 export type AuthenticatedTweetGetter = (id: string) => Promise<unknown>;
 
+/** Detects the successful-looking placeholder returned for logged-out media. */
+export const isXLoginRequiredPlaceholder = (text: string): boolean => {
+  const normalized = text.replace(/[\u2018\u2019]/g, "'").toLowerCase();
+  return normalized.includes("age-restricted adult content") &&
+    (normalized.includes("not be appropriate for people under 18") ||
+      normalized.includes("you'll need to log in to x"));
+};
+
 const getDefaultAuthenticatedTweetGetter = () =>
   (globalThis as typeof globalThis & {
     GM_X_getTweet?: AuthenticatedTweetGetter;
@@ -151,7 +159,7 @@ export const fetchAuthenticatedTweet = async (
 ): Promise<ProcessedTweet> => {
   if (!getter) {
     throw new Error(
-      "Authenticated Media Bridge is not installed or has not loaded",
+      "X Auth Bridge is not installed or has not loaded",
     );
   }
   return processAuthenticatedTweetResult(await getter(id), id);
@@ -219,7 +227,16 @@ export const formatAuthenticatedTweet = (
       : formatPublicTweet(reference, options.fetcher ?? getDefaultFetcher());
     if (publicResult instanceof URL) return publicResult;
 
-    return Promise.resolve(publicResult).catch(async (publicError) => {
+    return Promise.resolve(publicResult).then((result) => {
+      if (
+        typeof result === "string" && isXLoginRequiredPlaceholder(result)
+      ) {
+        throw new Error(
+          "Public X API returned an age-restricted login placeholder",
+        );
+      }
+      return result;
+    }).catch(async (publicError) => {
       console.info(
         "Public X expansion failed; trying the logged-in X session.",
         publicError,

@@ -1,6 +1,7 @@
 import { assertEquals, assertRejects } from "../../test_deps.ts";
 import {
   formatAuthenticatedTweet,
+  isXLoginRequiredPlaceholder,
   parseXPostURL,
   processAuthenticatedTweetResult,
 } from "./authenticated_tweet.ts";
@@ -144,6 +145,29 @@ Deno.test("X middleware uses authentication only after public failure", async ()
   assertEquals(
     await publicMiddleware(new URL("https://x.com/alice/status/123")),
     "public result",
+  );
+  assertEquals(authenticatedCalls, 1);
+});
+
+Deno.test("X login placeholder falls back to the authenticated bridge", async () => {
+  const placeholder = "> [@alice https://twitter.com/alice/status/123]\n" +
+    "> Age-restricted adult content. This content might not be appropriate " +
+    "for people under 18 years old. To view this media, you’ll need to log " +
+    "in to X. Learn more";
+  assertEquals(isXLoginRequiredPlaceholder(placeholder), true);
+
+  let authenticatedCalls = 0;
+  const middleware = formatAuthenticatedTweet({
+    publicMiddleware: () => Promise.resolve(placeholder),
+    getTweet: () => {
+      authenticatedCalls++;
+      return Promise.resolve(graphqlTweet);
+    },
+  });
+
+  assertEquals(
+    await middleware(new URL("https://x.com/alice/status/123")),
+    "> [@alice https://twitter.com/alice/status/123]\n> hello #test",
   );
   assertEquals(authenticatedCalls, 1);
 });

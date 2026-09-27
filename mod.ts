@@ -120,6 +120,7 @@ export type {
 export {
   fetchAuthenticatedTweet,
   formatAuthenticatedTweet,
+  isXLoginRequiredPlaceholder,
   parseXPostURL,
   processAuthenticatedTweetResult,
   stringifyAuthenticatedTweet,
