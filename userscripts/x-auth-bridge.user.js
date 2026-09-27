@@ -1,84 +1,23 @@
 // ==UserScript==
-// @name         Cosense Authenticated Media Bridge
+// @name         Cosense X Auth Bridge
 // @namespace    https://github.com/yozba/scrapbox-url-customizer-extensions
 // @version      0.1.0
-// @description  Provides GM_fetch and a cookie-isolated, read-only X post bridge for Cosense.
+// @description  Exposes one cookie-isolated, read-only X post lookup to Cosense.
 // @author       yozba
 // @match        https://scrapbox.io/*
-// @connect      *
+// @connect      x.com
+// @connect      abs.twimg.com
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @run-at       document-start
-// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/authenticated-media-bridge.user.js
-// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/authenticated-media-bridge.user.js
+// @downloadURL  https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
+// @updateURL    https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
 // @license      MIT
 // ==/UserScript==
 
 (() => {
   "use strict";
-
-  const parseHeaders = (rawHeaders) =>
-    new Headers(
-      rawHeaders
-        .replace(/\r?\n[\t ]+/g, " ")
-        .split(/\r\n|\r|\n/)
-        .flatMap((header) => {
-          const separator = header.indexOf(":");
-          if (separator < 1) return [];
-          return [[
-            header.slice(0, separator).trim(),
-            header.slice(separator + 1).trim(),
-          ]];
-        }),
-    );
-
-  // Compatible with the GM_fetch helper used by the base customizer.
-  const GM_fetch = (input, init) =>
-    new Promise((resolve, reject) => {
-      const headers = Object.fromEntries(
-        new Headers(
-          input instanceof Request ? input.headers : init?.headers,
-        ).entries(),
-      );
-      if (input instanceof Request) {
-        headers.Referer = input.referrer;
-        headers["Referrer-Policy"] = input.referrerPolicy;
-      }
-      if (init?.referrer) headers.Referer = init.referrer;
-      if (init?.referrerPolicy) {
-        headers["Referrer-Policy"] = init.referrerPolicy;
-      }
-
-      const request = new Request(input, init);
-      if (request.signal?.aborted) {
-        reject(new DOMException("Aborted", "AbortError"));
-        return;
-      }
-
-      const { abort } = GM_xmlhttpRequest({
-        method: request.method,
-        url: request.url,
-        headers,
-        ...(init?.body ? { data: init.body } : {}),
-        anonymous: request.credentials === "omit",
-        responseType: "blob",
-        fetch: true,
-        onload: (result) => {
-          const response = new Response(result.response, {
-            status: result.status,
-            statusText: result.statusText,
-            headers: parseHeaders(result.responseHeaders),
-          });
-          Object.defineProperty(response, "url", { value: result.finalUrl });
-          resolve(response);
-        },
-        onerror: () => reject(new TypeError("Network request failed")),
-        ontimeout: () => reject(new TypeError("Network request timeout")),
-        onabort: () => reject(new DOMException("Aborted", "AbortError")),
-      });
-      request.signal?.addEventListener("abort", abort, { once: true });
-    });
 
   const requestText = (url, headers = {}) =>
     new Promise((resolve, reject) => {
@@ -161,10 +100,10 @@
     return queryInfoPromise;
   };
 
-  const buildFlags = (keys, value = true) =>
-    Object.fromEntries(keys.map((key) => [key, value]));
+  const buildFlags = (keys) =>
+    Object.fromEntries(keys.map((key) => [key, true]));
 
-  const fetchAuthenticatedTweet = async (tweetId) => {
+  const getTweet = async (tweetId) => {
     if (!/^\d+$/.test(tweetId)) throw new TypeError("Invalid X post ID");
 
     const csrfToken = await getXCookie("ct0");
@@ -216,8 +155,8 @@
     return result;
   };
 
-  Object.defineProperties(unsafeWindow, {
-    GM_fetch: { configurable: true, value: GM_fetch },
-    GM_X_getTweet: { configurable: true, value: fetchAuthenticatedTweet },
+  Object.defineProperty(unsafeWindow, "GM_X_getTweet", {
+    configurable: true,
+    value: getTweet,
   });
 })();

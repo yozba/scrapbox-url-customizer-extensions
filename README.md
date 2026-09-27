@@ -47,20 +47,22 @@ X/Twitterは通常どおり認証不要の取得を先に試し、それが失�
 
 ## 導入
 
-先に次の認証メディアブリッジをTampermonkeyへ導入してください。
-既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)機能も含むので、
-このブランチでは置き換えて利用できます。
+先に既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)を
+Tampermonkeyへ導入してください。画像・動画の取得やアップロードなど、CORS制限を
+受ける従来の通信にそのまま使います。
+
+それとは別に、次のX専用認証ブリッジもTampermonkeyへ導入してください。
 
 ```text
-https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/authenticated-media-bridge.user.js
+https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js
 ```
 
 TampermonkeyからXのCookie読み取り権限を求められた場合は、X認証フォールバックを使う
 ために許可が必要です。X認証用としてCosense側へ公開する関数は、数字の投稿IDを受ける
 読み取り専用関数だけです。`ct0`
 や認証Cookieの文字列は公開しません。同じブラウザで `https://x.com/`
-にログインしておいてください。同梱の `GM_fetch` は従来版と同じく、
-CORS制限を受ける画像・動画の取得やアップロードに使います。
+にログインしておいてください。このブリッジは既存の `GM_fetch` を定義・変更・置換
+しません。
 
 次のURLを開き、生成されたコードをCosenseのUserScriptページへ貼り付けます。
 
@@ -70,7 +72,7 @@ https://scrapbox-bundler.vercel.app/?url=https://raw.githubusercontent.com/yozba
 
 Popup MenuでURLを含む範囲を選択し、`URL`を押す使い方は本家と同じです。
 
-X WebのAPIも非公開仕様です。クエリIDはXの配信中JavaScriptから初回に解決しますが、
+XのWeb APIも非公開仕様です。クエリIDはXの配信中JavaScriptから初回に解決しますが、
 APIの形や認証方法が変更された場合は利用できなくなる可能性があります。
 
 ## 開発
