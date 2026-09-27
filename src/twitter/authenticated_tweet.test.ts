@@ -212,6 +212,6 @@ Deno.test("X middleware reports both failures when the bridge is absent", async 
     () =>
       middleware(new URL("https://x.com/alice/status/123")) as Promise<unknown>,
     AggregateError,
-    "Public and authenticated X post expansion both failed",
+    "X Auth Bridge is not installed or has not loaded",
   );
 });

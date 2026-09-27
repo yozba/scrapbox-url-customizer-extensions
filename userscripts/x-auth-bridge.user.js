@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Cosense X Auth Bridge
 // @namespace    https://github.com/yozba/scrapbox-url-customizer-extensions
-// @version      0.1.0
+// @version      0.2.0
 // @description  Exposes one cookie-isolated, read-only X post lookup to Cosense.
 // @author       yozba
 // @match        https://scrapbox.io/*
+// @match        https://x.com/*
 // @connect      x.com
 // @connect      abs.twimg.com
 // @grant        GM_cookie
@@ -18,6 +19,10 @@
 
 (() => {
   "use strict";
+
+  // The x.com match grants GM_cookie access to X's cookie jar. The bridge
+  // itself is exposed only to Cosense and does not run on X pages.
+  if (location.hostname !== "scrapbox.io") return;
 
   const requestText = (url, headers = {}) =>
     new Promise((resolve, reject) => {

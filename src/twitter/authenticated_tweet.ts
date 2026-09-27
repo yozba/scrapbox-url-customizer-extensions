@@ -28,6 +28,9 @@ export const isXLoginRequiredPlaceholder = (text: string): boolean => {
       normalized.includes("you'll need to log in to x"));
 };
 
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+
 const getDefaultAuthenticatedTweetGetter = () =>
   (globalThis as typeof globalThis & {
     GM_X_getTweet?: AuthenticatedTweetGetter;
@@ -248,9 +251,15 @@ export const formatAuthenticatedTweet = (
         );
         return await stringifyAuthenticatedTweet(tweet);
       } catch (authenticatedError) {
+        console.error(
+          "Logged-in X expansion failed.",
+          authenticatedError,
+        );
         throw new AggregateError(
           [publicError, authenticatedError],
-          "Public and authenticated X post expansion both failed",
+          `Public and authenticated X post expansion both failed: ${
+            errorMessage(authenticatedError)
+          }`,
         );
       }
     });
