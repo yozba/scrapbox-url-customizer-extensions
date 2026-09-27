@@ -33,6 +33,18 @@ export interface VideoFileUploaderDependencies {
 // multipart envelope and Tampermonkey's serialization overhead.
 export const MAX_SESSION_BRIDGE_BYTES = 60 * 1024 * 1024;
 
+// Larger files cannot pass through the browser-extension session bridge, and
+// the alternative upload paths are not reliable for them. Let each service's
+// media handler fall back to its original MP4 URL instead.
+export const MAX_VIDEO_UPLOAD_BYTES = 64 * 1024 * 1024;
+
+/** Returns true when a response declares a video too large to rehost. */
+export const isVideoTooLargeToUpload = (response: Response): boolean => {
+  const value = response.headers.get("content-length")?.trim();
+  if (!value || !/^\d+$/.test(value)) return false;
+  return Number(value) > MAX_VIDEO_UPLOAD_BYTES;
+};
+
 const getDefaultOAuthUploader = (): GyazoOAuthVideoUploader | undefined =>
   (globalThis as typeof globalThis & {
     GM_Gyazo_uploadVideoOAuth?: GyazoOAuthVideoUploader;
@@ -104,6 +116,12 @@ export const createVideoFileUploader = (
   let tokenPromise: Promise<string | undefined> | undefined;
 
   return async (file, sourceURL) => {
+    if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
+      throw new RangeError(
+        "The video exceeds 64 MiB; use its original URL instead",
+      );
+    }
+
     let gyazoError: unknown;
     let token: string | undefined;
     try {

@@ -2,6 +2,7 @@ import { type Fetcher, getDefaultFetcher } from "./fetch_post.ts";
 import type { BlueskyPost, BlueskyVideoView } from "./types.ts";
 import {
   createVideoFileUploader,
+  isVideoTooLargeToUpload,
   type VideoFileUploaderDependencies,
 } from "../media/upload_video.ts";
 
@@ -99,6 +100,7 @@ export const createBlueskyVideoUploader = (
             `Bluesky video download failed: ${response.status} ${response.statusText}`,
           );
         }
+        if (isVideoTooLargeToUpload(response)) return blobURL;
         const blob = await response.blob();
         const file = new File([blob], video.alt || "bluesky-video.mp4", {
           type: blob.type.split(";")[0] || "video/mp4",

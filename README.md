@@ -34,16 +34,13 @@ MiB超のレスポンスも拒否します。
 
 #### 2-2. Gyazo Upload Bridge（任意）
 
-ブラウザのGyazoログイン状態を使い、D&Dと同じセッション用エンドポイントへ
-`no-cors`のmultipartリクエストとして動画をアップロードします。完了後はCosenseに
-接続済みのGyazo OAuthトークンで新しいキャプチャのURLだけを取得します。動画本体を
-Chrome拡張のメッセージへ載せないため、64 MiBを超えるMP4にも対応し、Gyazoのタブを
-開いておく必要はありません。同じブラウザでGyazoへログインしておく必要はあります。
+60 MiB以下のMP4を、ブラウザのGyazoログイン状態を使ってGyazoのセッション用
+エンドポイントへアップロードします。Gyazoのタブを開いておく必要はありませんが、
+同じブラウザでGyazoへログインしておく必要があります。
 
-このセッションアップロードが失敗した場合、60
-MiB以下の動画だけブラウザのGyazoログイン状態で
-再試行します。それも失敗した場合はCosenseプロジェクトストレージへフォールバック
-します。セッション再試行も利用する場合は、同じブラウザでGyazoへログインしておきます。
+64 MiBを超える動画はGyazoおよびCosenseストレージへのアップロードを試さず、元の
+MP4 URLを使用します。64 MiB以下でも各アップロード先が利用できなければ、最終的に
+元のMP4 URLへフォールバックします。
 
 **インストール:**
 [gyazo-session-upload-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/gyazo-session-upload-bridge.user.js)
@@ -90,7 +87,8 @@ Instagramの内部APIからカルーセルの全画像と動画MP4を取得し�
 - 選択したURLの投稿だけを展開し、返信先と引用先は展開しません。
 - 末尾の空行を取り除き、画像は一行に空白なしで並べます。
 - 認証不要の取得を先に試し、失敗した場合だけX Auth Bridgeを使用します。
-- 動画はGyazo Upload Bridge、Gyazo API、Cosenseストレージの順で保存を試します。
+- 64 MiB以下の動画はGyazoとCosenseストレージへの保存を試し、それを超える動画は
+  元のMP4 URLを使用します。
 
 XのウェブAPIは非公開仕様です。クエリIDはXの配信中JavaScriptから初回に解決しますが、
 APIの形や認証方法が変更された場合は利用できなくなる可能性があります。
@@ -101,7 +99,9 @@ APIの形や認証方法が変更された場合は利用できなくなる可�
 - 返信先と引用投稿は展開しません。
 - 公開AppViewを先に試し、失敗した場合だけBluesky Auth Bridgeを使用します。
 - 画像はGyazoへアップロードし、失敗した場合は元の画像URLを使用します。
-- 動画は作者のPDSからMP4を取得し、次の順で保存を試します。
+- 動画は作者のPDSからMP4を取得します。64
+  MiBを超える場合はそのURLをそのまま使用し、 64
+  MiB以下の場合だけ次の順で保存を試します。
   1. Gyazo Upload Bridge（導入済みの場合）
   2. Gyazo OAuth API
   3. Gyazoセッション（60 MiB以下、Bridge導入済みの場合）
@@ -112,7 +112,8 @@ APIの形や認証方法が変更された場合は利用できなくなる可�
 
 - 投稿・Reelの本文、投稿者、画像、動画を展開します。
 - Instagram Auth Bridgeがあれば、カルーセルの全画像と動画MP4も取得します。
-- 画像はGyazoへ、動画はGyazoまたはCosenseプロジェクトストレージへ保存します。
+- 画像はGyazoへ保存します。64 MiB以下の動画はGyazoまたはCosenseプロジェクト
+  ストレージへの保存を試し、それを超える動画は元のMP4 URLを使用します。
 
 Instagramの内部APIは非公開仕様のため、Instagram側の変更やログイン状態によって
 利用できなくなる可能性があります。

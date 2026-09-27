@@ -2,6 +2,7 @@ import { type Fetcher, getDefaultFetcher } from "../bluesky/fetch_post.ts";
 import { uploadBlueskyImage } from "../bluesky/upload_image.ts";
 import {
   createVideoFileUploader,
+  isVideoTooLargeToUpload,
   type VideoFileUploader,
 } from "../media/upload_video.ts";
 
@@ -50,6 +51,7 @@ export const createInstagramVideoUploader = (
             `Instagram video download failed: ${response.status} ${response.statusText}`,
           );
         }
+        if (isVideoTooLargeToUpload(response)) return new URL(sourceURL);
         const blob = await response.blob();
         const file = new File([blob], "instagram-video.mp4", {
           type: blob.type.split(";")[0] || "video/mp4",

@@ -5,6 +5,7 @@ import {
   uploadBlueskyImage,
 } from "../bluesky/upload_image.ts";
 import {
+  isVideoTooLargeToUpload,
   uploadVideoFile,
   type VideoFileUploader,
 } from "../media/upload_video.ts";
@@ -50,6 +51,7 @@ export const createXMediaUploader = (
             `X video download failed: ${response.status} ${response.statusText}`,
           );
         }
+        if (isVideoTooLargeToUpload(response)) return media.url;
         const blob = await response.blob();
         const type = blob.type.split(";")[0] || "video/mp4";
         if (type !== "video/mp4") {
