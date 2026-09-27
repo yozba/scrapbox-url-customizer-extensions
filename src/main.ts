@@ -12,6 +12,8 @@ import {
 } from "./deps/scrapbox_url_customizer.ts";
 import { insertText } from "./deps/cosense_std.ts";
 import { formatBlueskyPost } from "./bluesky/format_post.ts";
+import { formatMastodonPost } from "./fediverse/mastodon.ts";
+import { formatMisskeyPost } from "./fediverse/misskey.ts";
 import { formatInstagramPost } from "./instagram/format_post.ts";
 import { formatAuthenticatedTweet } from "./twitter/authenticated_tweet.ts";
 
@@ -28,6 +30,8 @@ const middlewares = [
   formatAuthenticatedTweet(),
   formatBlueskyPost(),
   formatInstagramPost(),
+  formatMastodonPost(),
+  formatMisskeyPost(),
   formatWikipedia,
   formatURL(),
 ] as const;

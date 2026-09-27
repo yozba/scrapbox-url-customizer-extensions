@@ -38,6 +38,39 @@ export type {
   BlueskyImageUploaderDependencies,
 } from "./src/bluesky/upload_image.ts";
 export {
+  fetchMastodonStatus,
+  formatMastodonPost,
+  parseMastodonPostURL,
+  renderMastodonHTML,
+  stringifyMastodonStatus,
+} from "./src/fediverse/mastodon.ts";
+export type {
+  FormatMastodonPostOptions,
+  MastodonMediaAttachment,
+  MastodonPostReference,
+  MastodonStatus,
+} from "./src/fediverse/mastodon.ts";
+export { formatFediverseMedia } from "./src/fediverse/media.ts";
+export type {
+  FediverseMedia,
+  FediverseMediaType,
+  FormatFediverseMediaOptions,
+} from "./src/fediverse/media.ts";
+export {
+  fetchMisskeyNote,
+  formatMisskeyPost,
+  parseMisskeyPostURL,
+  stringifyMisskeyNote,
+} from "./src/fediverse/misskey.ts";
+export type {
+  FormatMisskeyPostOptions,
+  MisskeyFile,
+  MisskeyNote,
+  MisskeyPostReference,
+  MisskeyPublicNoteGetter,
+  MisskeyUser,
+} from "./src/fediverse/misskey.ts";
+export {
   fetchAuthenticatedInstagramMedia,
   fetchInstagramOEmbed,
   fetchInstagramPost,
@@ -73,7 +106,9 @@ export type {
 } from "./src/instagram/upload_media.ts";
 export {
   createVideoFileUploader,
+  isVideoTooLargeToUpload,
   MAX_SESSION_BRIDGE_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
   uploadVideoFile,
 } from "./src/media/upload_video.ts";
 export type {
