@@ -73,6 +73,18 @@ export type {
   VideoFileUploaderDependencies,
 } from "./src/media/upload_video.ts";
 export {
+  fetchAuthenticatedTweet,
+  formatAuthenticatedTweet,
+  parseXPostURL,
+  processAuthenticatedTweetResult,
+  stringifyAuthenticatedTweet,
+} from "./src/twitter/authenticated_tweet.ts";
+export type {
+  AuthenticatedTweetGetter,
+  FormatAuthenticatedTweetOptions,
+  XPostReference,
+} from "./src/twitter/authenticated_tweet.ts";
+export {
   formatRootTweet,
   normalizeTweetOutput,
   takeRootTweet,
