@@ -1,4 +1,4 @@
-import { getGyazoToken } from "jsr:@cosense/std@^0.29.16/rest";
+import { getGyazoToken } from "../deps/cosense_std.ts";
 import { type Fetcher, getDefaultFetcher } from "./fetch_post.ts";
 import type { BlueskyImageView } from "./types.ts";
 

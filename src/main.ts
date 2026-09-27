@@ -1,4 +1,3 @@
-import { insertText } from "jsr:@cosense/std@^0.29.16/browser/dom";
 import type { Scrapbox } from "jsr:@cosense/types@^0.10.10/userscript";
 import {
   convert,
@@ -11,6 +10,7 @@ import {
   redirectWikiwand,
   shortenAmazonURL,
 } from "./deps/scrapbox_url_customizer.ts";
+import { insertText } from "./deps/cosense_std.ts";
 import { formatBlueskyPost } from "./bluesky/format_post.ts";
 import { formatInstagramPost } from "./instagram/format_post.ts";
 import { formatAuthenticatedTweet } from "./twitter/authenticated_tweet.ts";

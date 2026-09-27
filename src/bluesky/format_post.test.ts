@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.19";
+import { assertEquals, assertStringIncludes } from "../../test_deps.ts";
 import {
   fetchAuthenticatedBlueskyPost,
   fetchBlueskyPost,

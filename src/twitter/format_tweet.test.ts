@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.19";
+import { assertEquals } from "../../test_deps.ts";
 import type { Tweet } from "../deps/scrapbox_url_customizer.ts";
 import { normalizeTweetOutput, takeRootTweet } from "./format_tweet.ts";
 

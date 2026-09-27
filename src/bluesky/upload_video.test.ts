@@ -1,4 +1,4 @@
-import { assertEquals, assertInstanceOf } from "jsr:@std/assert@^1.0.19";
+import { assertEquals, assertInstanceOf } from "../../test_deps.ts";
 import {
   createBlueskyVideoUploader,
   resolveBlueskyPDS,

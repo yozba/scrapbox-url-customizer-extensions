@@ -1,4 +1,4 @@
-import { assertEquals, assertInstanceOf } from "jsr:@std/assert@^1.0.19";
+import { assertEquals, assertInstanceOf } from "../../test_deps.ts";
 import { createBlueskyImageUploader } from "./upload_image.ts";
 
 Deno.test("Bluesky images are downloaded and uploaded to Gyazo once", async () => {
