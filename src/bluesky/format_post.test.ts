@@ -1,5 +1,6 @@
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.19";
 import {
+  fetchAuthenticatedBlueskyPost,
   fetchBlueskyPost,
   parseBlueskyPostURL,
   resolveBlueskyActor,
@@ -58,6 +59,58 @@ Deno.test("fetchBlueskyPost resolves a handle and requests one AT URI", async ()
     requested[1].searchParams.get("uris"),
     "at://did:plc:alice/app.bsky.feed.post/3abc",
   );
+});
+
+Deno.test("authenticated Bluesky fallback is skipped after public success", async () => {
+  let authenticatedCalls = 0;
+  const post = await fetchAuthenticatedBlueskyPost(
+    { actor: "did:plc:alice", rkey: "3public" },
+    () =>
+      Promise.resolve(Response.json({
+        posts: [{
+          uri: "at://did:plc:alice/app.bsky.feed.post/3public",
+          cid: "cid",
+          author: { did: "did:plc:alice", handle: "alice.test" },
+          record: { text: "public", createdAt: "2026-01-01T00:00:00Z" },
+          indexedAt: "2026-01-01T00:00:00Z",
+        }],
+      })),
+    () => {
+      authenticatedCalls++;
+      return Promise.reject(new Error("must not be called"));
+    },
+  );
+  assertEquals(post.record.text, "public");
+  assertEquals(authenticatedCalls, 0);
+});
+
+Deno.test("authenticated Bluesky fallback receives only the resolved AT URI", async () => {
+  let requestedAtURI = "";
+  const post = await fetchAuthenticatedBlueskyPost(
+    { actor: "alice.test", rkey: "3private" },
+    (input) => {
+      const url = new URL(input.toString());
+      if (url.pathname.endsWith("resolveHandle")) {
+        return Promise.resolve(Response.json({ did: "did:plc:alice" }));
+      }
+      return Promise.resolve(Response.json({ posts: [] }));
+    },
+    (atURI) => {
+      requestedAtURI = atURI;
+      return Promise.resolve({
+        uri: atURI,
+        cid: "private-cid",
+        author: { did: "did:plc:alice", handle: "alice.test" },
+        record: { text: "logged in", createdAt: "2026-01-01T00:00:00Z" },
+        indexedAt: "2026-01-01T00:00:00Z",
+      });
+    },
+  );
+  assertEquals(
+    requestedAtURI,
+    "at://did:plc:alice/app.bsky.feed.post/3private",
+  );
+  assertEquals(post.record.text, "logged in");
 });
 
 Deno.test("renderBlueskyText honors UTF-8 byte offsets", () => {

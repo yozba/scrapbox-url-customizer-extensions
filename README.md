@@ -15,10 +15,12 @@
 - `bsky.app/profile/.../post/...`
   を本文・リンク・メンション・画像・動画つきで展開します。
 - Blueskyでも返信先と引用投稿は展開しません。
+- 公開取得に失敗したBluesky投稿は、ブラウザのBlueskyログイン状態を使って再取得します。
 - Instagramの投稿・Reelを本文・投稿者・画像・動画つきで展開します。
 
-Blueskyの取得には認証不要の公開AppView
-APIを使います。画像は、Cosenseに接続済みの
+Blueskyの取得にはまず認証不要の公開AppView
+APIを使います。ログインしないと取得できない投稿だけ、開いている `bsky.app`
+タブへ読み取りを依頼します。画像は、Cosenseに接続済みの
 GyazoアカウントへアップロードしてからCosenseの画像記法にします。Gyazo未連携または
 アップロード失敗時は、元のBluesky画像URLを使用します。
 
@@ -45,6 +47,10 @@ X/Twitterは通常どおり認証不要の取得を先に試し、それが失�
 読み取ります。
 値をCosenseページへ公開・保存したり、X以外へ送信したりはしません。
 
+Bluesky Webはログイン情報を `bsky.app` のローカルストレージに保持しています。
+下記ブリッジは認証情報をCosense側やTampermonkeyの共有ストレージへコピーせず、
+`bsky.app` タブ内で認証GETを行い、必要な投稿データだけを返します。
+
 ## 導入
 
 先に既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)を
@@ -64,6 +70,18 @@ TampermonkeyからXのCookie読み取り権限を求められた場合は、X認
 にログインしておいてください。このブリッジは既存の `GM_fetch` を定義・変更・置換
 しません。
 
+Blueskyの認証フォールバックも使う場合は、次の専用ブリッジをTampermonkeyへ
+追加してください。
+
+```text
+https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/bluesky-auth-bridge.user.js
+```
+
+同じブラウザでBlueskyへログインし、`https://bsky.app/` のタブを開いたまま
+変換してください。Cosense側へ公開する関数は投稿のAT URIを受ける読み取り専用関数
+だけです。アクセストークンや更新トークンは公開・複製しません。このブリッジも
+既存の `GM_fetch` やX専用ブリッジを変更しません。
+
 次のURLを開き、生成されたコードをCosenseのUserScriptページへ貼り付けます。
 
 ```text
@@ -72,7 +90,7 @@ https://scrapbox-bundler.vercel.app/?url=https://raw.githubusercontent.com/yozba
 
 Popup MenuでURLを含む範囲を選択し、`URL`を押す使い方は本家と同じです。
 
-XのWeb APIも非公開仕様です。クエリIDはXの配信中JavaScriptから初回に解決しますが、
+XのウェブAPIも非公開仕様です。クエリIDはXの配信中JavaScriptから初回に解決しますが、
 APIの形や認証方法が変更された場合は利用できなくなる可能性があります。
 
 ## 開発

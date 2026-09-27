@@ -1,7 +1,12 @@
 export {
+  fetchAuthenticatedBlueskyPost,
   fetchBlueskyPost,
   parseBlueskyPostURL,
   resolveBlueskyActor,
+} from "./src/bluesky/fetch_post.ts";
+export type {
+  AuthenticatedBlueskyPostGetter,
+  Fetcher,
 } from "./src/bluesky/fetch_post.ts";
 export {
   extractBlueskyImages,
@@ -9,6 +14,7 @@ export {
   renderBlueskyText,
   stringifyBlueskyPost,
 } from "./src/bluesky/format_post.ts";
+export type { FormatBlueskyPostOptions } from "./src/bluesky/format_post.ts";
 export type {
   BlueskyFacet,
   BlueskyPost,

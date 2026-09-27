@@ -3,7 +3,8 @@ import {
   type Middleware,
 } from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
 import {
-  fetchBlueskyPost,
+  type AuthenticatedBlueskyPostGetter,
+  fetchAuthenticatedBlueskyPost,
   type Fetcher,
   parseBlueskyPostURL,
 } from "./fetch_post.ts";
@@ -191,6 +192,7 @@ export const stringifyBlueskyPost = async (
 
 export interface FormatBlueskyPostOptions {
   fetcher?: Fetcher;
+  getAuthenticatedPost?: AuthenticatedBlueskyPostGetter;
   uploadImage?: BlueskyImageUploader;
   uploadVideo?: BlueskyVideoUploader;
 }
@@ -202,7 +204,11 @@ export const formatBlueskyPost = (
 (url) => {
   const reference = parseBlueskyPostURL(url);
   if (!reference) return new URL(url);
-  return fetchBlueskyPost(reference, options.fetcher).then((post) =>
+  return fetchAuthenticatedBlueskyPost(
+    reference,
+    options.fetcher,
+    options.getAuthenticatedPost,
+  ).then((post) =>
     stringifyBlueskyPost(
       post,
       url,

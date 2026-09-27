@@ -7,6 +7,10 @@ export type Fetcher = (
   init?: RequestInit,
 ) => Promise<Response>;
 
+export type AuthenticatedBlueskyPostGetter = (
+  atURI: string,
+) => Promise<unknown>;
+
 export const getDefaultFetcher = (): Fetcher => {
   const globalWithGMFetch = globalThis as typeof globalThis & {
     GM_fetch?: Fetcher;
@@ -22,6 +26,41 @@ const getJSON = async <T>(url: URL, fetcher: Fetcher): Promise<T> => {
     );
   }
   return await response.json() as T;
+};
+
+const getDefaultAuthenticatedPostGetter = () =>
+  (globalThis as typeof globalThis & {
+    GM_Bluesky_getPost?: AuthenticatedBlueskyPostGetter;
+  }).GM_Bluesky_getPost;
+
+const validateBlueskyPost = (candidate: unknown): BlueskyPost => {
+  if (candidate === null || typeof candidate !== "object") {
+    throw new TypeError("Bluesky getPosts returned an invalid post");
+  }
+  const post = candidate as Partial<BlueskyPost>;
+  if (
+    typeof post.uri !== "string" || typeof post.cid !== "string" ||
+    typeof post.author?.did !== "string" ||
+    typeof post.author?.handle !== "string" ||
+    typeof post.record?.text !== "string"
+  ) {
+    throw new TypeError("Bluesky getPosts returned an invalid post");
+  }
+  return post as BlueskyPost;
+};
+
+const fetchBlueskyPostByURI = async (
+  atURI: string,
+  fetcher: Fetcher,
+): Promise<BlueskyPost> => {
+  const url = new URL("/xrpc/app.bsky.feed.getPosts", APP_VIEW_ORIGIN);
+  url.searchParams.append("uris", atURI);
+
+  const result = await getJSON<{ posts?: unknown }>(url, fetcher);
+  if (!Array.isArray(result.posts) || result.posts.length === 0) {
+    throw new Error(`Bluesky post was not found: ${atURI}`);
+  }
+  return validateBlueskyPost(result.posts[0]);
 };
 
 /** Extracts the actor and record key from a bsky.app post URL. */
@@ -71,26 +110,36 @@ export const fetchBlueskyPost = async (
 ): Promise<BlueskyPost> => {
   const did = await resolveBlueskyActor(reference.actor, fetcher);
   const atURI = `at://${did}/app.bsky.feed.post/${reference.rkey}`;
-  const url = new URL("/xrpc/app.bsky.feed.getPosts", APP_VIEW_ORIGIN);
-  url.searchParams.append("uris", atURI);
+  return await fetchBlueskyPostByURI(atURI, fetcher);
+};
 
-  const result = await getJSON<{ posts?: unknown }>(url, fetcher);
-  if (!Array.isArray(result.posts) || result.posts.length === 0) {
-    throw new Error(`Bluesky post was not found: ${atURI}`);
-  }
+/** Tries the public AppView first, then a logged-in bsky.app tab. */
+export const fetchAuthenticatedBlueskyPost = async (
+  reference: BlueskyPostReference,
+  fetcher: Fetcher = getDefaultFetcher(),
+  getter: AuthenticatedBlueskyPostGetter | undefined =
+    getDefaultAuthenticatedPostGetter(),
+): Promise<BlueskyPost> => {
+  const did = await resolveBlueskyActor(reference.actor, fetcher);
+  const atURI = `at://${did}/app.bsky.feed.post/${reference.rkey}`;
 
-  const candidate = result.posts[0];
-  if (candidate === null || typeof candidate !== "object") {
-    throw new TypeError("Bluesky getPosts returned an invalid post");
+  try {
+    return await fetchBlueskyPostByURI(atURI, fetcher);
+  } catch (publicError) {
+    console.info(
+      "Public Bluesky expansion failed; trying the logged-in Bluesky session.",
+      publicError,
+    );
+    try {
+      if (!getter) {
+        throw new Error("Bluesky Auth Bridge is not installed or loaded");
+      }
+      return validateBlueskyPost(await getter(atURI));
+    } catch (authenticatedError) {
+      throw new AggregateError(
+        [publicError, authenticatedError],
+        "Public and authenticated Bluesky post expansion both failed",
+      );
+    }
   }
-  const post = candidate as Partial<BlueskyPost>;
-  if (
-    typeof post.uri !== "string" || typeof post.cid !== "string" ||
-    typeof post.author?.did !== "string" ||
-    typeof post.author?.handle !== "string" ||
-    typeof post.record?.text !== "string"
-  ) {
-    throw new TypeError("Bluesky getPosts returned an invalid post");
-  }
-  return post as BlueskyPost;
 };
