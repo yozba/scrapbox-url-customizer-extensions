@@ -26,7 +26,8 @@ Deno.test("Bluesky videos are downloaded and uploaded to Gyazo once", async () =
   const requested: URL[] = [];
   let uploadCount = 0;
   const uploader = createBlueskyVideoUploader({
-    fetcher: (input, init) => {
+    getToken: () => Promise.resolve("gyazo-token"),
+    fetcher: (input) => {
       const url = new URL(input.toString());
       requested.push(url);
       if (url.hostname === "plc.directory") {
@@ -45,16 +46,19 @@ Deno.test("Bluesky videos are downloaded and uploaded to Gyazo once", async () =
         );
       }
 
+      throw new Error(`Unexpected download: ${url}`);
+    },
+    upload: (input, init) => {
       uploadCount++;
-      assertEquals(url.href, "https://gif.gyazo.com/gif/upload");
-      assertEquals(init?.credentials, "include");
+      assertEquals(input.toString(), "https://upload.gyazo.com/api/upload");
+      assertEquals(init?.credentials, "omit");
       const form = init?.body;
       assertInstanceOf(form, FormData);
-      assertInstanceOf(form.get("data"), File);
-      const metadata = JSON.parse(String(form.get("metadata")));
-      assertEquals(metadata.title, "video description");
+      assertInstanceOf(form.get("imagedata"), File);
+      assertEquals(form.get("access_token"), "gyazo-token");
+      assertEquals(form.get("title"), "video description");
       return Promise.resolve(
-        new Response("https://gyazo.com/video-id", { status: 200 }),
+        Response.json({ permalink_url: "https://gyazo.com/video-id" }),
       );
     },
   });
@@ -80,6 +84,47 @@ Deno.test("Bluesky videos are downloaded and uploaded to Gyazo once", async () =
     await uploader(video, post, postURL),
     new URL("https://gyazo.com/video-id"),
   );
-  assertEquals(requested.length, 3);
+  assertEquals(requested.length, 2);
   assertEquals(uploadCount, 1);
+});
+
+Deno.test("a failed Gyazo upload falls back to the source MP4 URL", async () => {
+  const uploader = createBlueskyVideoUploader({
+    getToken: () => Promise.resolve(undefined),
+    fetcher: (input) => {
+      const url = new URL(input.toString());
+      if (url.hostname === "plc.directory") {
+        return Promise.resolve(Response.json({
+          service: [{
+            id: "did:plc:alice#atproto_pds",
+            serviceEndpoint: "https://alice.pds.test",
+          }],
+        }));
+      }
+      return Promise.resolve(
+        new Response(new Blob(["video"], { type: "video/mp4" })),
+      );
+    },
+    sessionUpload: () =>
+      Promise.resolve(new Response("not allowed", { status: 403 })),
+  });
+  const post: BlueskyPost = {
+    uri: "at://did:plc:alice/app.bsky.feed.post/3abc",
+    cid: "post-cid",
+    author: { did: "did:plc:alice", handle: "alice.test" },
+    record: { text: "video", createdAt: "2026-01-01T00:00:00Z" },
+    indexedAt: "2026-01-01T00:00:00Z",
+  };
+  const result = await uploader(
+    {
+      cid: "video-cid",
+      playlist: "https://video.bsky.app/playlist.m3u8",
+    },
+    post,
+    new URL("https://bsky.app/profile/alice.test/post/3abc"),
+  );
+
+  assertEquals(result.hostname, "alice.pds.test");
+  assertEquals(result.pathname, "/xrpc/com.atproto.sync.getBlob");
+  assertEquals(result.searchParams.get("cid"), "video-cid");
 });

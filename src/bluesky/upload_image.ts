@@ -16,7 +16,9 @@ export interface BlueskyImageUploaderDependencies {
   getToken?: () => Promise<string | undefined>;
 }
 
-const getConnectedGyazoToken = async (): Promise<string | undefined> => {
+export const getConnectedGyazoToken = async (): Promise<
+  string | undefined
+> => {
   const result = await getGyazoToken();
   if (!result.ok) {
     throw new Error("Failed to get the Gyazo upload token", {

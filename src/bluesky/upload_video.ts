@@ -1,5 +1,6 @@
 import { type Fetcher, getDefaultFetcher } from "./fetch_post.ts";
 import type { BlueskyPost, BlueskyVideoView } from "./types.ts";
+import { getConnectedGyazoToken } from "./upload_image.ts";
 
 export type BlueskyVideoUploader = (
   video: BlueskyVideoView,
@@ -10,6 +11,12 @@ export type BlueskyVideoUploader = (
 export interface BlueskyVideoUploaderDependencies {
   /** Resolves DIDs, downloads the source MP4, and uploads it to Gyazo. */
   fetcher?: Fetcher;
+  /** Sends an OAuth upload to Gyazo. Defaults to fetch. */
+  upload?: Fetcher;
+  /** Sends a browser-session upload as a fallback. Defaults to GM_fetch. */
+  sessionUpload?: Fetcher;
+  /** Retrieves the Gyazo OAuth token connected to Cosense. */
+  getToken?: () => Promise<string | undefined>;
 }
 
 interface DIDDocument {
@@ -70,6 +77,10 @@ export const createBlueskyVideoUploader = (
   dependencies: BlueskyVideoUploaderDependencies = {},
 ): BlueskyVideoUploader => {
   const fetcher = dependencies.fetcher ?? getDefaultFetcher();
+  const upload = dependencies.upload ?? globalThis.fetch.bind(globalThis);
+  const sessionUpload = dependencies.sessionUpload ?? getDefaultFetcher();
+  const getToken = dependencies.getToken ?? getConnectedGyazoToken;
+  let tokenPromise: Promise<string | undefined> | undefined;
   const cache = new Map<string, Promise<URL>>();
 
   return (video, post, postURL) => {
@@ -78,11 +89,13 @@ export const createBlueskyVideoUploader = (
     if (cached) return cached;
 
     const promise = (async (): Promise<URL> => {
+      let sourceMP4: URL | undefined;
       try {
         const pds = await resolveBlueskyPDS(post.author.did, fetcher);
         const blobURL = new URL("/xrpc/com.atproto.sync.getBlob", pds);
         blobURL.searchParams.set("did", post.author.did);
         blobURL.searchParams.set("cid", video.cid);
+        sourceMP4 = blobURL;
         const videoResponse = await fetcher(blobURL);
         if (!videoResponse.ok) {
           throw new Error(
@@ -93,6 +106,58 @@ export const createBlueskyVideoUploader = (
         const file = new File([blob], "bluesky-video.mp4", {
           type: blob.type.split(";")[0] || "video/mp4",
         });
+
+        let token: string | undefined;
+        try {
+          tokenPromise ??= getToken();
+          token = await tokenPromise;
+        } catch (error) {
+          console.warn(
+            "Could not get the Gyazo OAuth token; trying the browser session.",
+            error,
+          );
+        }
+        if (token) {
+          try {
+            const form = new FormData();
+            form.append("imagedata", file);
+            form.append("access_token", token);
+            form.append("referer_url", postURL.href);
+            form.append("title", video.alt || file.name);
+            if (video.alt) form.append("desc", video.alt);
+            const uploadResponse = await upload(
+              "https://upload.gyazo.com/api/upload",
+              {
+                method: "POST",
+                mode: "cors",
+                credentials: "omit",
+                body: form,
+              },
+            );
+            if (!uploadResponse.ok) {
+              throw new Error(
+                `Gyazo OAuth video upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
+              );
+            }
+            const result = await uploadResponse.json() as {
+              permalink_url?: unknown;
+              url?: unknown;
+            };
+            const permalink = typeof result.permalink_url === "string"
+              ? result.permalink_url
+              : result.url;
+            if (typeof permalink !== "string") {
+              throw new TypeError("Gyazo returned an invalid upload response");
+            }
+            return new URL(permalink);
+          } catch (error) {
+            console.warn(
+              "Gyazo OAuth video upload failed; trying the browser session.",
+              error,
+            );
+          }
+        }
+
         const form = new FormData();
         form.append("data", file);
         form.append(
@@ -103,7 +168,7 @@ export const createBlueskyVideoUploader = (
             referer_url: postURL.href,
           }),
         );
-        const uploadResponse = await fetcher(
+        const uploadResponse = await sessionUpload(
           "https://gif.gyazo.com/gif/upload",
           {
             method: "POST",
@@ -118,13 +183,13 @@ export const createBlueskyVideoUploader = (
         );
         if (!uploadResponse.ok) {
           throw new Error(
-            `Gyazo video upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
+            `Gyazo session video upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`,
           );
         }
         return new URL((await uploadResponse.text()).trim());
       } catch (error) {
         console.error("Failed to upload a Bluesky video to Gyazo", error);
-        return new URL(video.playlist);
+        return sourceMP4 ?? new URL(video.playlist);
       }
     })();
     cache.set(key, promise);
