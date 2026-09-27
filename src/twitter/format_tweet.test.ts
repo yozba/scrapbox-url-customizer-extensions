@@ -1,5 +1,9 @@
 import { assertEquals } from "../../test_deps.ts";
-import type { ProcessedTweet, Tweet } from "../deps/scrapbox_url_customizer.ts";
+import type {
+  ProcessedTweet,
+  Tweet,
+  TweetViaProxy,
+} from "../deps/scrapbox_url_customizer.ts";
 import {
   normalizeTweetOutput,
   stringifyRootTweet,
@@ -73,5 +77,20 @@ Deno.test("stringifyRootTweet uses the injected narrow media uploader", async ()
   assertEquals(
     normalizeTweetOutput(result),
     "[@alice https://twitter.com/alice/status/1]\n[https://gyazo.com/video-id]",
+  );
+});
+
+Deno.test("stringifyRootTweet omits an empty description before proxy images", async () => {
+  const tweet = {
+    id: "1",
+    screenName: "alice",
+    description: "",
+    images: ["https://pbs.twimg.com/media/image.jpg"],
+  } as TweetViaProxy;
+
+  assertEquals(
+    await stringifyRootTweet(tweet),
+    "> [@alice https://twitter.com/alice/status/1]\n" +
+      "> [https://pbs.twimg.com/media/image.jpg]",
   );
 });

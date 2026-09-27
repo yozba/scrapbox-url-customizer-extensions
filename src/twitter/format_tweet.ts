@@ -60,11 +60,14 @@ export const stringifyRootTweet = async (
     }/status/${tweet.id}`,
   );
   if ("images" in tweet) {
+    const description = tweet.description?.trim()
+      ? tweet.description.split("\n").map((line) => `> ${escapeForEmbed(line)}`)
+      : tweet.images.length === 0
+      ? ["> [/ no description provided]"]
+      : [];
     return [
       `> [@${escapeForEmbed(tweet.screenName)} ${url.origin}${url.pathname}]`,
-      ...(tweet.description?.split?.("\n").map((line) =>
-        `> ${escapeForEmbed(line)}`
-      ) ?? ["> [/ no description provided]"]),
+      ...description,
       ...(tweet.images.length > 0
         ? [`> ${tweet.images.map((image) => `[${image}]`).join("")}`]
         : []),
