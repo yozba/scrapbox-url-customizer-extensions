@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cosense Gyazo Upload Bridge
 // @namespace    https://github.com/yozba/scrapbox-url-customizer-extensions
-// @version      0.2.1
+// @version      0.3.0
 // @description  Uploads MP4 files to Gyazo without transferring them through extension messages.
 // @author       yozba
 // @match        https://scrapbox.io/*
@@ -158,24 +158,28 @@
       ),
     );
     const form = new FormData();
-    form.append("access_token", accessToken);
-    form.append("imagedata", video, safeTitle);
-    form.append("referer_url", sourceURL);
-    form.append("title", safeTitle);
-
+    form.append("data", video, safeTitle);
+    form.append(
+      "metadata",
+      JSON.stringify({
+        app: "Gyazo",
+        title: safeTitle,
+        url: sourceURL,
+      }),
+    );
     const controller = new AbortController();
     const timer = setTimeout(
       () => controller.abort(),
       OAUTH_UPLOAD_TIMEOUT_MS,
     );
     try {
-      // Keeping this a CORS-safelisted request is intentional. Gyazo does not
-      // expose CORS response headers, so the resulting opaque response cannot
-      // be read; the small authenticated capture list below supplies the URL.
-      await nativeFetch("https://upload.gyazo.com/api/upload", {
+      // This is the same session endpoint used by Gyazo's D&D upload. Keeping
+      // the request in no-cors mode avoids response CORS while the browser
+      // streams the File directly, outside extension messaging.
+      await nativeFetch("https://gif.gyazo.com/gif/upload", {
         method: "POST",
         mode: "no-cors",
-        credentials: "omit",
+        credentials: "include",
         body: form,
         signal: controller.signal,
       });
