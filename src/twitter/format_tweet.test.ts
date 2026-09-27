@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@^1.0.19";
-import type { Tweet } from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+import type { Tweet } from "../deps/scrapbox_url_customizer.ts";
 import { normalizeTweetOutput, takeRootTweet } from "./format_tweet.ts";
 
 Deno.test("normalizeTweetOutput removes the final line and compacts images", () => {

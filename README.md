@@ -97,6 +97,10 @@ APIの形や認証方法が変更された場合は利用できなくなる可�
 
 [Deno](https://deno.com/) 2を使います。
 
+`@takker/scrapbox-url-customizer` のバージョン指定は
+[`src/deps/scrapbox_url_customizer.ts`](./src/deps/scrapbox_url_customizer.ts)
+に集約しています。アップデート時はこの1か所だけを変更します。
+
 ```sh
 deno task check
 deno task fix

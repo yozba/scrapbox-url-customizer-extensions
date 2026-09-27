@@ -10,7 +10,7 @@ import {
   redirectGoogleSearch,
   redirectWikiwand,
   shortenAmazonURL,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+} from "./deps/scrapbox_url_customizer.ts";
 import { formatBlueskyPost } from "./bluesky/format_post.ts";
 import { formatInstagramPost } from "./instagram/format_post.ts";
 import { formatAuthenticatedTweet } from "./twitter/authenticated_tweet.ts";

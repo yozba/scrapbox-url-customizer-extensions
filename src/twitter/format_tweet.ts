@@ -1,10 +1,10 @@
 import {
+  type ProcessedTweet,
   stringify,
   type Tweet,
   type TweetFormatter,
   type TweetViaProxy,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
-import type { ProcessedTweet } from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+} from "../deps/scrapbox_url_customizer.ts";
 import { processTweet } from "./process_tweet.ts";
 
 const imageLine = /^(?:\[https?:\/\/[^\]\r\n]+\])+$/;

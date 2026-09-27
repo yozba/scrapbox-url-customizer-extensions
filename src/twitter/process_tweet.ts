@@ -1,8 +1,5 @@
 import { unescape } from "jsr:@std/html@^1.0.7";
-import type {
-  ProcessedTweet,
-  Tweet,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+import type { ProcessedTweet, Tweet } from "../deps/scrapbox_url_customizer.ts";
 
 type RawTweet = Tweet | NonNullable<Tweet["parent"]>;
 
