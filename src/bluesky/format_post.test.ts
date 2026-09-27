@@ -118,3 +118,35 @@ Deno.test("stringifyBlueskyPost uploads and compacts images", async () => {
   assertEquals(result.includes("quoted text"), false);
   assertEquals(result.endsWith("\n"), false);
 });
+
+Deno.test("stringifyBlueskyPost uploads its video but not quoted media", async () => {
+  const post: BlueskyPost = {
+    uri: "at://did:plc:alice/app.bsky.feed.post/3video",
+    cid: "post-cid",
+    author: { did: "did:plc:alice", handle: "alice.test" },
+    record: { text: "video", createdAt: "2026-01-01T00:00:00Z" },
+    indexedAt: "2026-01-01T00:00:00Z",
+    embed: {
+      $type: "app.bsky.embed.recordWithMedia#view",
+      record: { value: { embed: { playlist: "quoted-playlist" } } },
+      media: {
+        $type: "app.bsky.embed.video#view",
+        cid: "video-cid",
+        playlist: "https://video.bsky.app/playlist.m3u8",
+      },
+    },
+  };
+  const videos: string[] = [];
+  const result = await stringifyBlueskyPost(
+    post,
+    new URL("https://bsky.app/profile/alice.test/post/3video"),
+    (image) => Promise.resolve(new URL(image.fullsize)),
+    (video) => {
+      videos.push(video.cid);
+      return Promise.resolve(new URL("https://gyazo.com/video-id"));
+    },
+  );
+  assertEquals(videos, ["video-cid"]);
+  assertStringIncludes(result, "> [https://gyazo.com/video-id]");
+  assertEquals(result.includes("quoted-playlist"), false);
+});

@@ -18,6 +18,15 @@ export {
   createBlueskyImageUploader,
   uploadBlueskyImage,
 } from "./src/bluesky/upload_image.ts";
+export {
+  createBlueskyVideoUploader,
+  resolveBlueskyPDS,
+  uploadBlueskyVideo,
+} from "./src/bluesky/upload_video.ts";
+export type {
+  BlueskyVideoUploader,
+  BlueskyVideoUploaderDependencies,
+} from "./src/bluesky/upload_video.ts";
 export type {
   BlueskyImageUploader,
   BlueskyImageUploaderDependencies,

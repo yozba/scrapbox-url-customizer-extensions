@@ -31,11 +31,24 @@ export interface BlueskyExternalView {
   thumb?: string;
 }
 
+export interface BlueskyVideoView {
+  cid: string;
+  playlist: string;
+  thumbnail?: string;
+  alt?: string;
+  presentation?: string;
+}
+
 export interface BlueskyEmbedView {
   $type?: string;
   images?: BlueskyImageView[];
   media?: BlueskyEmbedView;
   external?: BlueskyExternalView;
+  cid?: string;
+  playlist?: string;
+  thumbnail?: string;
+  alt?: string;
+  presentation?: string;
   // A quoted record is deliberately left opaque. It must not be expanded.
   record?: unknown;
 }

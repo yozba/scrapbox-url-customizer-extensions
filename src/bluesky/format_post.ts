@@ -13,11 +13,16 @@ import type {
   BlueskyFacetFeature,
   BlueskyImageView,
   BlueskyPost,
+  BlueskyVideoView,
 } from "./types.ts";
 import {
   type BlueskyImageUploader,
   uploadBlueskyImage,
 } from "./upload_image.ts";
+import {
+  type BlueskyVideoUploader,
+  uploadBlueskyVideo,
+} from "./upload_video.ts";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -93,6 +98,28 @@ export const extractBlueskyImages = (
   return [];
 };
 
+/** Returns only the requested post's video, never a quoted-post video. */
+export const extractBlueskyVideo = (
+  embed: BlueskyEmbedView | undefined,
+): BlueskyVideoView | undefined => {
+  if (!embed) return undefined;
+  if (typeof embed.cid === "string" && typeof embed.playlist === "string") {
+    return {
+      cid: embed.cid,
+      playlist: embed.playlist,
+      ...(typeof embed.thumbnail === "string"
+        ? { thumbnail: embed.thumbnail }
+        : {}),
+      ...(typeof embed.alt === "string" ? { alt: embed.alt } : {}),
+      ...(typeof embed.presentation === "string"
+        ? { presentation: embed.presentation }
+        : {}),
+    };
+  }
+  // recordWithMedia stores the post's own media here. `record` is the quote.
+  return embed.media ? extractBlueskyVideo(embed.media) : undefined;
+};
+
 const getExternal = (
   embed: BlueskyEmbedView | undefined,
 ): BlueskyEmbedView["external"] => {
@@ -127,6 +154,7 @@ export const stringifyBlueskyPost = async (
   post: BlueskyPost,
   url: Readonly<URL>,
   uploadImage: BlueskyImageUploader = uploadBlueskyImage,
+  uploadVideo: BlueskyVideoUploader = uploadBlueskyVideo,
 ): Promise<string> => {
   const lines = [
     `[@${escapeForEmbed(post.author.handle)} ${sourcePostURL(url)}]`,
@@ -145,6 +173,12 @@ export const stringifyBlueskyPost = async (
     );
   }
 
+  const video = extractBlueskyVideo(post.embed);
+  if (video) {
+    const uploaded = await uploadVideo(video, post, url);
+    lines.push(`[${uploaded}]`);
+  }
+
   const external = getExternal(post.embed);
   if (external && !body.includes(external.uri)) {
     const title = external.title ? escapeForEmbed(external.title) : "";
@@ -158,6 +192,7 @@ export const stringifyBlueskyPost = async (
 export interface FormatBlueskyPostOptions {
   fetcher?: Fetcher;
   uploadImage?: BlueskyImageUploader;
+  uploadVideo?: BlueskyVideoUploader;
 }
 
 /** Creates a middleware that expands bsky.app post URLs. */
@@ -168,6 +203,11 @@ export const formatBlueskyPost = (
   const reference = parseBlueskyPostURL(url);
   if (!reference) return new URL(url);
   return fetchBlueskyPost(reference, options.fetcher).then((post) =>
-    stringifyBlueskyPost(post, url, options.uploadImage)
+    stringifyBlueskyPost(
+      post,
+      url,
+      options.uploadImage,
+      options.uploadVideo,
+    )
   );
 };
