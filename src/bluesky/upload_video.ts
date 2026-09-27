@@ -1,4 +1,4 @@
-import { getProject, uploadToGCS } from "jsr:@cosense/std@^0.29.16/rest";
+import { getProject, uploadToGCS } from "../deps/cosense_std.ts";
 import { type Fetcher, getDefaultFetcher } from "./fetch_post.ts";
 import type { BlueskyPost, BlueskyVideoView } from "./types.ts";
 import { getConnectedGyazoToken } from "./upload_image.ts";
