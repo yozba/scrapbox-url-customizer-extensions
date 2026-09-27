@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.19";
+import { assertEquals } from "../../test_deps.ts";
 import { fetchInstagramPost, parseInstagramPostURL } from "./fetch_post.ts";
 
 Deno.test("parseInstagramPostURL accepts post, reel, and TV URLs", () => {

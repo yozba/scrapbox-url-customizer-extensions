@@ -1,7 +1,7 @@
 import {
   escapeForEmbed,
   type Middleware,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+} from "../deps/scrapbox_url_customizer.ts";
 import {
   fetchInstagramPost,
   type FetchInstagramPostOptions,

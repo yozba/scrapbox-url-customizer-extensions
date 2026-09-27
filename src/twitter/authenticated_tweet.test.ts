@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.19";
+import { assertEquals, assertRejects } from "../../test_deps.ts";
 import {
   formatAuthenticatedTweet,
   parseXPostURL,

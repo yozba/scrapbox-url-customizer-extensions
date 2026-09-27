@@ -4,7 +4,7 @@ import {
   type ProcessedTweet,
   stringify,
   type Tweet,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+} from "../deps/scrapbox_url_customizer.ts";
 import { formatRootTweet, normalizeTweetOutput } from "./format_tweet.ts";
 import { processTweet } from "./process_tweet.ts";
 
