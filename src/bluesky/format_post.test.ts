@@ -130,6 +130,26 @@ Deno.test("renderBlueskyText honors UTF-8 byte offsets", () => {
   );
 });
 
+Deno.test("renderBlueskyText preserves original spacing around hashtags", () => {
+  const text = "#first\ntext #second end";
+  assertEquals(
+    renderBlueskyText(text, [{
+      index: { byteStart: 0, byteEnd: 6 },
+      features: [{
+        $type: "app.bsky.richtext.facet#tag",
+        tag: "first",
+      }],
+    }, {
+      index: { byteStart: 12, byteEnd: 19 },
+      features: [{
+        $type: "app.bsky.richtext.facet#tag",
+        tag: "second",
+      }],
+    }]),
+    text,
+  );
+});
+
 Deno.test("stringifyBlueskyPost uploads and compacts images", async () => {
   const post: BlueskyPost = {
     uri: "at://did:plc:alice/app.bsky.feed.post/3abc",

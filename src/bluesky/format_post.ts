@@ -51,7 +51,7 @@ const formatFacet = (
     feature.$type === "app.bsky.richtext.facet#tag" &&
     typeof feature.tag === "string"
   );
-  if (tag?.tag) return ` #${escapeForEmbed(tag.tag)} `;
+  if (tag?.tag) return `#${escapeForEmbed(tag.tag)}`;
 
   return source;
 };
