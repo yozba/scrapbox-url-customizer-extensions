@@ -108,8 +108,7 @@ Deno.test("a failed Gyazo upload falls back to the source MP4 URL", async () => 
         new Response(new Blob(["video"], { type: "video/mp4" })),
       );
     },
-    sessionUpload: () =>
-      Promise.resolve(new Response("not allowed", { status: 403 })),
+    sessionUpload: () => Promise.reject(new Error("not allowed")),
     fallbackUpload: () => Promise.reject(new Error("storage unavailable")),
   });
   const post: BlueskyPost = {
@@ -150,8 +149,7 @@ Deno.test("a Gyazo 500 falls back to Cosense storage", async () => {
           : new Response(new Blob(["video"], { type: "video/mp4" })),
       );
     },
-    sessionUpload: () =>
-      Promise.resolve(new Response("conversion failed", { status: 500 })),
+    sessionUpload: () => Promise.reject(new Error("conversion failed: 500")),
     fallbackUpload: (file) => {
       storedFile = file;
       return Promise.resolve(

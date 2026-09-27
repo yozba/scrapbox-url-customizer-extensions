@@ -1,11 +1,14 @@
 import {
+  convertScrapboxURL,
+  escapeForEmbed,
+  type Media,
   type ProcessedTweet,
-  stringify,
   type Tweet,
   type TweetFormatter,
   type TweetViaProxy,
 } from "../deps/scrapbox_url_customizer.ts";
 import { processTweet } from "./process_tweet.ts";
+import { uploadXMedia, type XMediaUploader } from "./upload_media.ts";
 
 const imageLine = /^(?:\[https?:\/\/[^\]\r\n]+\])+$/;
 const paddedTag = / (#\$?[^\s]+) /g;
@@ -46,14 +49,72 @@ export const takeRootTweet = (tweet: Tweet): ProcessedTweet => {
   return root;
 };
 
+/** Stringifies one X post while routing media through the narrow uploaders. */
+export const stringifyRootTweet = async (
+  tweet: ProcessedTweet | TweetViaProxy,
+  uploadMedia: XMediaUploader = uploadXMedia,
+): Promise<string> => {
+  const url = new URL(
+    `https://twitter.com/${
+      "author" in tweet ? tweet.author.screenName : tweet.screenName
+    }/status/${tweet.id}`,
+  );
+  if ("images" in tweet) {
+    return [
+      `> [@${escapeForEmbed(tweet.screenName)} ${url.origin}${url.pathname}]`,
+      ...(tweet.description?.split?.("\n").map((line) =>
+        `> ${escapeForEmbed(line)}`
+      ) ?? ["> [/ no description provided]"]),
+      ...(tweet.images.length > 0
+        ? [`> ${tweet.images.map((image) => `[${image}]`).join("")}`]
+        : []),
+    ].join("\n");
+  }
+
+  const renderMedia = async (media: Media[]): Promise<string> => {
+    const lines: string[] = [];
+    for (let index = 0; index < media.length; index += 2) {
+      const first = `[${await uploadMedia(media[index], url)}]`;
+      const second = media[index + 1]
+        ? `[${await uploadMedia(media[index + 1], url)}]`
+        : "";
+      lines.push(`${first}${second}`);
+    }
+    return `\n${lines.join("\n")}\n`;
+  };
+
+  const body = (await Promise.all(tweet.content.map((node) => {
+    switch (node.type) {
+      case "plain":
+        return node.text;
+      case "hashtag":
+        return ` #${node.text} `;
+      case "symbol":
+        return ` #$${node.text} `;
+      case "mention":
+        return `[@${node.screenName} https://twitter.com/${node.screenName}]`;
+      case "media":
+        return renderMedia(node.media);
+      case "url":
+        return `${convertScrapboxURL()(node.url)} `;
+    }
+  }))).join("").replace(/^\n+|\n+$/g, "");
+  return [
+    `[@${escapeForEmbed(tweet.author.screenName)} ${url}]`,
+    ...body.split("\n"),
+  ].join("\n");
+};
+
 /** X formatter that expands only the URL's tweet, not its parent or quote. */
 export const formatRootTweet: TweetFormatter = async (
   tweet: Tweet | TweetViaProxy,
 ): Promise<string> => {
   if ("images" in tweet) {
-    return normalizeTweetOutput(await stringify(tweet));
+    return normalizeTweetOutput(await stringifyRootTweet(tweet));
   }
 
-  const rendered = normalizeTweetOutput(await stringify(takeRootTweet(tweet)));
+  const rendered = normalizeTweetOutput(
+    await stringifyRootTweet(takeRootTweet(tweet)),
+  );
   return rendered.split("\n").map((line) => `> ${line}`).join("\n");
 };

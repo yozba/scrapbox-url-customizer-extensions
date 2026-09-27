@@ -9,5 +9,6 @@ export { insertText } from "jsr:@cosense/std@^0.29.16/browser/dom";
 export {
   getGyazoToken,
   getProject,
+  getTweetInfo,
   uploadToGCS,
 } from "jsr:@cosense/std@^0.29.16/rest";
