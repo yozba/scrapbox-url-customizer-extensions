@@ -10,7 +10,7 @@
 最初に次のURLを開き、生成されたコードをCosenseのUserScriptページへ貼り付けます。
 
 ```text
-https://scrapbox-bundler.vercel.app/?url=https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/src/main.ts&bundle&minify&run&reload
+https://scrapbox-bundler.vercel.app/?url=https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/src/main.ts&bundle&minify&run&reload
 ```
 
 Popup MenuでURLを含む範囲を選択し、`URL`を押す使い方は本家と同じです。
@@ -30,7 +30,7 @@ MiB超のレスポンスも拒否します。
 既存の[`GM_fetch`](https://scrapbox.io/takker/GM_fetch)は、先に無効化または削除してください。
 
 **インストール:**
-[safe-fetch.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/safe-fetch.user.js)
+[safe-fetch.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/safe-fetch.user.js)
 
 #### 2-2. Gyazo Session Upload Bridge（任意）
 
@@ -42,7 +42,7 @@ Gyazo OAuth APIが動画を受け付けなかった場合に、ブラウザのGy
 直接フォールバックします。
 
 **インストール:**
-[gyazo-session-upload-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/gyazo-session-upload-bridge.user.js)
+[gyazo-session-upload-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/gyazo-session-upload-bridge.user.js)
 
 #### 2-3. X Auth Bridge（任意）
 
@@ -54,7 +54,7 @@ Cookie文字列をCosenseページへ公開・保存しません。利用する�
 `https://x.com/` へログインし、Cookie読み取り権限を許可します。
 
 **インストール:**
-[x-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/x-auth-bridge.user.js)
+[x-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/x-auth-bridge.user.js)
 
 #### 2-4. Bluesky Auth Bridge（任意）
 
@@ -66,7 +66,7 @@ Cookie文字列をCosenseページへ公開・保存しません。利用する�
 開いたまま変換します。
 
 **インストール:**
-[bluesky-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/bluesky-auth-bridge.user.js)
+[bluesky-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/bluesky-auth-bridge.user.js)
 
 #### 2-5. Instagram Auth Bridge（任意）
 
@@ -77,7 +77,7 @@ Instagramの内部APIからカルーセルの全画像と動画MP4を取得し�
 導入しない場合は、認証不要のoEmbedを使って本文・投稿者・代表画像だけを展開します。
 
 **インストール:**
-[instagram-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/authenticated-media/userscripts/instagram-auth-bridge.user.js)
+[instagram-auth-bridge.user.js](https://raw.githubusercontent.com/yozba/scrapbox-url-customizer-extensions/main/userscripts/instagram-auth-bridge.user.js)
 
 ## 追加・変更する動作
 
