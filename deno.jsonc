@@ -19,7 +19,8 @@
   },
   "lint": {
     "rules": {
-      // Explicit jsr: imports keep the raw GitHub entry point bundleable.
+      // The dependency facade uses an explicit jsr: import so raw GitHub entry
+      // points remain bundleable without this repository's import map.
       "exclude": ["no-import-prefix"]
     }
   }

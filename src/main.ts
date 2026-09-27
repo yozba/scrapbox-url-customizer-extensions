@@ -11,7 +11,7 @@ import {
   redirectGoogleSearch,
   redirectWikiwand,
   shortenAmazonURL,
-} from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
+} from "./deps/scrapbox_url_customizer.ts";
 import { formatBlueskyPost } from "./bluesky/format_post.ts";
 import { formatRootTweet } from "./twitter/format_tweet.ts";
 

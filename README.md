@@ -41,6 +41,10 @@ Popup MenuでURLを含む範囲を選択し、`URL`を押す使い方は本家�
 
 [Deno](https://deno.com/) 2を使います。
 
+`@takker/scrapbox-url-customizer` のバージョン指定は
+[`src/deps/scrapbox_url_customizer.ts`](./src/deps/scrapbox_url_customizer.ts)
+に集約しています。アップデート時はこの1か所だけを変更します。
+
 ```sh
 deno task check
 deno task fix
