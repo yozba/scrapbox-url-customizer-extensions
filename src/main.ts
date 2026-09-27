@@ -13,6 +13,7 @@ import {
   shortenAmazonURL,
 } from "jsr:@takker/scrapbox-url-customizer@^0.4.8";
 import { formatBlueskyPost } from "./bluesky/format_post.ts";
+import { formatInstagramPost } from "./instagram/format_post.ts";
 import { formatRootTweet } from "./twitter/format_tweet.ts";
 
 declare const scrapbox: Scrapbox;
@@ -27,6 +28,7 @@ const middlewares = [
   convertGyazoURL,
   formatTweet(formatRootTweet),
   formatBlueskyPost(),
+  formatInstagramPost(),
   formatWikipedia,
   formatURL(),
 ] as const;

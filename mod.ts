@@ -32,6 +32,47 @@ export type {
   BlueskyImageUploaderDependencies,
 } from "./src/bluesky/upload_image.ts";
 export {
+  fetchAuthenticatedInstagramMedia,
+  fetchInstagramOEmbed,
+  fetchInstagramPost,
+  parseInstagramPostURL,
+} from "./src/instagram/fetch_post.ts";
+export type { FetchInstagramPostOptions } from "./src/instagram/fetch_post.ts";
+export {
+  extractInstagramMedia,
+  formatInstagramPost,
+  stringifyInstagramPost,
+} from "./src/instagram/format_post.ts";
+export type {
+  FormatInstagramPostOptions,
+  StringifyInstagramPostOptions,
+} from "./src/instagram/format_post.ts";
+export type {
+  InstagramMedia,
+  InstagramMediaItem,
+  InstagramOEmbed,
+  InstagramPost,
+  InstagramPostReference,
+} from "./src/instagram/types.ts";
+export {
+  createInstagramVideoUploader,
+  uploadInstagramImage,
+  uploadInstagramVideo,
+} from "./src/instagram/upload_media.ts";
+export type {
+  InstagramImageUploader,
+  InstagramVideoUploader,
+  InstagramVideoUploaderDependencies,
+} from "./src/instagram/upload_media.ts";
+export {
+  createVideoFileUploader,
+  uploadVideoFile,
+} from "./src/media/upload_video.ts";
+export type {
+  VideoFileUploader,
+  VideoFileUploaderDependencies,
+} from "./src/media/upload_video.ts";
+export {
   formatRootTweet,
   normalizeTweetOutput,
   takeRootTweet,
